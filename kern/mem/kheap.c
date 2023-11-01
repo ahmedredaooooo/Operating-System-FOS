@@ -122,7 +122,7 @@ void kexpand(uint32 newSize)
 
 void *krealloc(void *virtual_address, uint32 new_size)
 {
-	//TODO: [PROJECT'23.MS2 - BONUS] [1] KERNEL HEAP - krealloc()
+	//TODO: [PROJECT'23.MS2 - BONUS#1] [1] KERNEL HEAP - krealloc()
 	// Write your code here, remove the panic and write your code
 	return NULL;
 	panic("krealloc() is not implemented yet...!!");

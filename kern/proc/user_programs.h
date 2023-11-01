@@ -48,6 +48,22 @@ DECLARE_START_OF(quicksort_heap)
 DECLARE_START_OF(fos_fibonacci)
 DECLARE_START_OF(fos_factorial)
 
+DECLARE_START_OF(tst_placement)
+DECLARE_START_OF(tst_invalid_access)
+/*2023*/
+DECLARE_START_OF(tst_invalid_access_slave1)
+DECLARE_START_OF(tst_invalid_access_slave2)
+DECLARE_START_OF(tst_invalid_access_slave3)
+DECLARE_START_OF(tst_invalid_access_slave4)
+/********************************************/
+DECLARE_START_OF(tst_free_1);
+/*2023*/DECLARE_START_OF(tst_free_1_slave1);
+/*2023*/DECLARE_START_OF(tst_free_1_slave2);
+DECLARE_START_OF(tst_free_2);
+DECLARE_START_OF(tst_malloc_1);
+DECLARE_START_OF(tst_malloc_2);
+DECLARE_START_OF(tst_first_fit_1);
+DECLARE_START_OF(tst_first_fit_2);
 //2023
 DECLARE_START_OF(tst_syscalls_1);
 DECLARE_START_OF(tst_syscalls_2);

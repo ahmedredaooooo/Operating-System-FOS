@@ -12,13 +12,13 @@
 
 // Page WS helper functions ===================================================
 void env_page_ws_print(struct Env *curenv);
-inline uint32 env_page_ws_get_size(struct Env *e);
 inline void env_page_ws_invalidate(struct Env* e, uint32 virtual_address);
 
 #if USE_KHEAP
 /*2024*/
 inline struct WorkingSetElement* env_page_ws_list_create_element(struct Env* e, uint32 virtual_address);
 #else
+inline uint32 env_page_ws_get_size(struct Env *e);
 inline void env_page_ws_set_entry(struct Env* e, uint32 entry_index, uint32 virtual_address);
 inline void env_page_ws_clear_entry(struct Env* e, uint32 entry_index);
 inline uint32 env_page_ws_get_virtual_address(struct Env* e, uint32 entry_index);

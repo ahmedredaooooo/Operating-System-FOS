@@ -150,7 +150,11 @@ uint32 calc_no_pages_tobe_removed_from_ready_exit_queues(uint32 WS_or_MEMORY_fla
 			struct Env * ptr_ready_env = NULL;
 			LIST_FOREACH(ptr_ready_env, &(env_ready_queues[i]))
 			{
+#if USE_KHEAP
+				int num_of_pages_in_WS = LIST_SIZE(&(ptr_ready_env->page_WS_list));
+#else
 				int num_of_pages_in_WS = env_page_ws_get_size(ptr_ready_env);
+#endif
 				int num_of_pages_to_be_removed = curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS / 100;
 				if ((curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS) % 100 > 0)
 					num_of_pages_to_be_removed++;
@@ -161,12 +165,21 @@ uint32 calc_no_pages_tobe_removed_from_ready_exit_queues(uint32 WS_or_MEMORY_fla
 		struct Env * ptr_exit_env = NULL;
 		LIST_FOREACH(ptr_exit_env, &env_exit_queue)
 		{
-			no_of_pages_tobe_removed_from_exit += env_page_ws_get_size(ptr_exit_env);
+#if USE_KHEAP
+			int num_of_pages_in_WS = LIST_SIZE(&(ptr_exit_env->page_WS_list));
+#else
+			int num_of_pages_in_WS = env_page_ws_get_size(ptr_exit_env);
+#endif
+			no_of_pages_tobe_removed_from_exit += num_of_pages_in_WS;
 		}
 
 		if(curenv != NULL)
 		{
+#if USE_KHEAP
+			int num_of_pages_in_WS = LIST_SIZE(&(curenv->page_WS_list));
+#else
 			int num_of_pages_in_WS = env_page_ws_get_size(curenv);
+#endif
 			int num_of_pages_to_be_removed = curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS / 100;
 			if ((curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS) % 100 > 0)
 				num_of_pages_to_be_removed++;
@@ -175,7 +188,11 @@ uint32 calc_no_pages_tobe_removed_from_ready_exit_queues(uint32 WS_or_MEMORY_fla
 	}
 	else	// THEN RAPID PROCESS SHALL BE FREED ONLY
 	{
+#if USE_KHEAP
+		int num_of_pages_in_WS = LIST_SIZE(&(curenv->page_WS_list));
+#else
 		int num_of_pages_in_WS = env_page_ws_get_size(curenv);
+#endif
 		int num_of_pages_to_be_removed = curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS / 100;
 		if ((curenv->percentage_of_WS_pages_to_be_removed * num_of_pages_in_WS) % 100 > 0)
 			num_of_pages_to_be_removed++;
@@ -300,17 +317,17 @@ void check_boot_pgdir()
 
 	//2016
 	// check phys mem
-	#if USE_KHEAP
+#if USE_KHEAP
 	{
 		for (i = 0; KERNEL_BASE + i < (uint32)ptr_free_mem; i += PAGE_SIZE)
 			assert(check_va2pa(ptr_page_directory, KERNEL_BASE + i) == i);
 	}
-	#else
+#else
 	{
 		for (i = 0; KERNEL_BASE + i != 0; i += PAGE_SIZE)
 			assert(check_va2pa(ptr_page_directory, KERNEL_BASE + i) == i);
 	}
-	#endif
+#endif
 	// check kernel stack
 	for (i = 0; i < KERNEL_STACK_SIZE; i += PAGE_SIZE)
 		assert(check_va2pa(ptr_page_directory, KERNEL_STACK_TOP - KERNEL_STACK_SIZE + i) == STATIC_KERNEL_PHYSICAL_ADDRESS(ptr_stack_bottom) + i);

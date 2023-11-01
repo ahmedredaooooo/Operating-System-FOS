@@ -115,7 +115,6 @@ void *realloc(void *virtual_address, uint32 new_size)
 	InitializeUHeap();
 	//==============================================================
 
-	//TODO: [PROJECT'23.MS2 - BONUS] [2] USER HEAP - realloc() [User Side]
 	// Write your code here, remove the panic and write your code
 	panic("realloc() is not implemented yet...!!");
 	return NULL;

@@ -327,7 +327,10 @@ void fault_handler(struct Trapframe *tf)
 	{
 		num_repeated_fault++ ;
 		if (num_repeated_fault == 3)
+		{
+			print_trapframe(tf);
 			panic("Failed to handle fault at va=%x: same va is faulted for 3 successive times\n", fault_va);
+		}
 	}
 	else
 	{
@@ -338,13 +341,19 @@ void fault_handler(struct Trapframe *tf)
 	//2017: Check stack overflow for Kernel
 	if (!userTrap)
 	{
+		//cprintf("trap from KERNEL\n");
 		if (fault_va < KERNEL_STACK_TOP - KERNEL_STACK_SIZE && fault_va >= USER_LIMIT)
 			panic("Kernel: stack overflow exception!");
+#if USE_KHEAP
+		if (fault_va >= KERNEL_HEAP_MAX)
+			panic("Kernel: heap overflow exception!");
+#endif
 	}
 	//2017: Check stack underflow for User
 	else
 	{
-		if (fault_va >= USTACKTOP)
+		//cprintf("trap from USER\n");
+		if (fault_va >= USTACKTOP && fault_va < USER_TOP)
 			panic("User: stack underflow exception!");
 	}
 
@@ -367,7 +376,7 @@ void fault_handler(struct Trapframe *tf)
 		{
 			/*============================================================================================*/
 			//TODO: [PROJECT'23.MS2 - #13] [3] PAGE FAULT HANDLER - Check for invalid pointers
-			//(e.g. pointing to unmapped memory, kernel or wrong access rights),
+			//(e.g. pointing to unmarked user heap page, kernel or wrong access rights),
 			//your code is here
 
 			/*============================================================================================*/

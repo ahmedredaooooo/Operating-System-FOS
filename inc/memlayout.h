@@ -15,7 +15,7 @@
  */
 
 /*2016*/
-#define USE_KHEAP 0
+#define USE_KHEAP 1
 
 // Global descriptor numbers
 #define GD_KT     0x08     // kernel text
