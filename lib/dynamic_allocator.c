@@ -125,6 +125,7 @@ void *expand_mem(uint32 requiredFitSize)
 //============================ REQUIRED FUNCTIONS ==================================//
 //==================================================================================//
 
+bool is_initialized = 0;
 //==================================
 // [1] INITIALIZE DYNAMIC ALLOCATOR:
 //==================================
@@ -134,9 +135,10 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpac
 	//DON'T CHANGE THESE LINES=================
 	if (initSizeOfAllocatedSpace == 0)
 		return ;
+	is_initialized = 1;
 	//=========================================
 	//=========================================
-
+	cprintf("\n\n\n\n\ncomment w printo\n\n\n\n\n");
 	//TODO: [PROJECT'23.MS1 - #5] [3] DYNAMIC ALLOCATOR - initialize_dynamic_allocator()
 	//panic("initialize_dynamic_allocator is not implemented yet");
 
@@ -159,6 +161,16 @@ void *alloc_block_FF(uint32 size)
 	//panic("alloc_block_FF is not implemented yet");
 	if(size==0)
 		return NULL;
+
+	if (!is_initialized)
+	{
+		uint32 required_size = size + sizeOfMetaData();
+		uint32 da_start = (uint32)sbrk(required_size);
+		//get new break since it's page aligned! thus, the size can be more than the required one
+		uint32 da_break = (uint32)sbrk(0);
+		initialize_dynamic_allocator(da_start, da_break - da_start);
+	}
+
 	struct BlockMetaData *next;
 	bool flag=0;
 	int last_block_size;
@@ -175,7 +187,7 @@ void *alloc_block_FF(uint32 size)
 	int ret;
 	if(!flag)
 	{
-		if(LIST_LAST(&mem_block_list)->is_free==1)
+		if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
 		{
 			ret=(int)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
 		}
