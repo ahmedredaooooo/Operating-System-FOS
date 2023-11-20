@@ -71,8 +71,30 @@ void* sbrk(int increment)
 	 */
 
 	//MS2: COMMENT THIS LINE BEFORE START CODING====
-	return (void*)-1 ;
-	panic("not implemented yet");
+	//return (void*)-1 ;
+	//panic("not implemented yet");
+
+	void* ret = (void*)segment_break;
+	if (!increment)
+		return ret;
+
+	if (increment > 0)
+	{
+		if (segment_break + increment > hard_limit)
+			panic("brk of block allocator can not exceed hard_limit of block allocator");
+		uint32 begin = ROUNDUP(segment_break, PAGE_SIZE), end = ROUNDUP(segment_break + increment, PAGE_SIZE);
+		allocate_map_chunck_of_pages(begin, end);
+		segment_break = end;
+	}
+	else
+	{
+		uint32 begin = ROUNDUP(segment_break + increment, PAGE_SIZE), end = ROUNDUP(segment_break, PAGE_SIZE);
+		deallocate_unmap_chunck_of_pages(begin, end);
+		segment_break += increment;
+		ret = (void*)segment_break;
+	}
+
+	return ret;
 }
 
 
