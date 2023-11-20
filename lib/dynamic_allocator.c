@@ -155,72 +155,57 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpac
 //=========================================
 // [4] ALLOCATE BLOCK BY FIRST FIT:
 //=========================================
-void *alloc_block_FF(uint32 size)
+void* alloc_block_FF(uint32 size)
 {
-	//TODO: [PROJECT'23.MS1 - #6] [3] DYNAMIC ALLOCATOR - alloc_block_FF()
-	//panic("alloc_block_FF is not implemented yet");
-	if(size==0)
-		return NULL;
+    //TODO: [PROJECT'23.MS1 - #6] [3] DYNAMIC ALLOCATOR - alloc_block_FF()
+    //panic("alloc_block_FF is not implemented yet");
+    if(size==0)
+        return NULL;
 
-	if (!is_initialized)
-	{
-		uint32 required_size = size + sizeOfMetaData();
-		uint32 da_start = (uint32)sbrk(required_size);
-		//get new break since it's page aligned! thus, the size can be more than the required one
-		uint32 da_break = (uint32)sbrk(0);
-		initialize_dynamic_allocator(da_start, da_break - da_start);
-	}
+    if (!is_initialized)
+    {
+        uint32 required_size = size + sizeOfMetaData();
+        uint32 da_start = (uint32)sbrk(required_size);
+        //get new break since it's page aligned! thus, the size can be more than the required one
+        uint32 da_break = (uint32)sbrk(0);
+        initialize_dynamic_allocator(da_start, da_break - da_start);
+    }
 
-	struct BlockMetaData *next;
-	bool flag=0;
-	int last_block_size;
-	struct BlockMetaData *ptr;
-	LIST_FOREACH(ptr,&mem_block_list)
-	{
-		uint32 x=(size+sizeOfMetaData());
-		if(ptr->is_free==1 && (uint32)x<=(uint32)ptr->size)
-		{
-			flag=1;
-			return alloc_block_at(ptr + 1, size);
-		}
-	}
-	int ret;
-	if(!flag)
-	{
-		if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
-		{
-			ret=(int)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
-		}
-		else
-		{
-			ret=(int)sbrk(size+sizeOfMetaData());
-		}
+    struct BlockMetaData *next;
+    int last_block_size;
+    struct BlockMetaData *ptr;
+    pos:
+    LIST_FOREACH(ptr,&mem_block_list)
+    {
+        uint32 x=(size+sizeOfMetaData());
+        if(ptr->is_free==1 && (uint32)x<=(uint32)ptr->size)
+            return alloc_block_at(ptr + 1, size);
+    }
 
-		if(ret==-1)
-		{
-			return NULL;
-		}
-		else
-		{
-			if(LIST_LAST(&mem_block_list)->is_free==1)
-			{
-				LIST_LAST(&mem_block_list)->is_free=0;
-				LIST_LAST(&mem_block_list)->size=size+sizeOfMetaData();
-			}
-			else
-			{
-				uint32 next_address=(uint32)LIST_LAST(&mem_block_list)+LIST_LAST(&mem_block_list)->size;
-				next=(struct BlockMetaData *)next_address;
-				next->is_free=0;
-				next->size=(size+sizeOfMetaData());
-				LIST_INSERT_TAIL(&mem_block_list,next);
-			}
-			uint32 tmp=(uint32)LIST_LAST(&mem_block_list)+sizeOfMetaData();
-			return (void *)tmp;
-		}
-	}
+    uint32 ret;
+    if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
+    {
+        ret=(uint32)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
+    }
+    else
+    {
+        ret=(uint32)sbrk(size+sizeOfMetaData());
+    }
 
-return NULL;
+
+    if(LIST_LAST(&mem_block_list)->is_free==1)
+    {
+        LIST_LAST(&mem_block_list)->size += (uint32)sbrk(0) - ret;
+    }
+    else
+    {
+        next=(struct BlockMetaData *)ret;
+        next->is_free = 1;
+        next->size = (uint32)sbrk(0) - ret;
+        LIST_INSERT_TAIL(&mem_block_list, next);
+    }
+
+    return alloc_block_FF(size);
 }
 //=========================================
 // [5] ALLOCATE BLOCK BY BEST FIT:
