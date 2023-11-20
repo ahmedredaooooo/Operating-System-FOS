@@ -167,7 +167,39 @@ void kfree(void* virtual_address)
 	//TODO: [PROJECT'23.MS2 - #04] [1] KERNEL HEAP - kfree()
 	//refer to the project presentation and documentation for details
 	// Write your code here, remove the panic and write your code
-	panic("kfree() is not implemented yet...!!");
+	//panic("kfree() is not implemented yet...!!");
+	if((uint32)virtual_address >= start && (uint32)virtual_address < segment_break)
+	{
+		free_block(virtual_address);
+	}
+	else
+	{
+		uint32 va = (uint32)virtual_address;
+		va = ROUNDDOWN(va, 4096);
+		uint32 x = PDX(va), y = PTX(va);
+		uint32 first_page = is_page_filled[x][y];
+		if(first_page == 0)
+			return;
+
+		for(uint32 i = first_page;i < KERNEL_HEAP_MAX ;i += 4096)
+		{
+			uint32 x = PDX(i), y = PTX(i);
+			struct FrameInfo *del_frame;
+			if(is_page_filled[x][y] == first_page)
+			{
+				//cprintf("line 1");
+				//tlb_invalidate(ptr_page_directory,(void *)i);
+				uint32 *ptr=NULL;
+				del_frame = get_frame_info(ptr_page_directory, i, &ptr);
+				//free_frame(del_frame);
+				unmap_frame(ptr_page_directory, i);
+				is_page_filled[x][y] = 0;
+			}
+			else
+				break;
+
+		}
+	}
 }
 
 unsigned int kheap_virtual_address(unsigned int physical_address)
