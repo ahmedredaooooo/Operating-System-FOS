@@ -42,8 +42,12 @@ int numOfKheapVACalls ;
 
 
 /*2023*/
-//TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialization: add suitable code here
+// OUT--HELPER
+void allocate_map_chunck_of_pages(uint32 start, uint32 end); // [start, end[
+void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end); // [start, end[
 
+//TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialization: add suitable code here
+uint32 start, segment_break, hard_limit;
 //====================================================================================
 
 #endif // FOS_KERN_KHEAP_H_

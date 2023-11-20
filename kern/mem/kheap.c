@@ -5,18 +5,50 @@
 #include "memory_manager.h"
 
 
+// OUR-HELPER
+void allocate_map_chunck_of_pages(uint32 start, uint32 end)
+{
+	for(uint32 va = start; va < end; va += PAGE_SIZE)
+	{
+		struct FrameInfo *ptr_frame_info;
+		allocate_frame(&ptr_frame_info); // panic if not success
+		map_frame(ptr_page_directory, ptr_frame_info, va, PERM_WRITEABLE | PERM_PRESENT);// WHAT ABOUT PERM
+	}
+}
+
+void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end)
+{
+	for(uint32 va = start; va < end; va += PAGE_SIZE)
+		unmap_frame(ptr_page_directory, va);
+}
+
 int initialize_kheap_dynamic_allocator(uint32 daStart, uint32 initSizeToAllocate, uint32 daLimit)
 {
-	//TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialize_kheap_dynamic_allocator()
-	//Initialize the dynamic allocator of kernel heap with the given start address, size & limit
-	//All pages in the given range should be allocated
-	//Remember: call the initialize_dynamic_allocator(..) to complete the initialization
-	//Return:
-	//	On success: 0
-	//	Otherwise (if no memory OR initial size exceed the given limit): E_NO_MEM
+    //TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialize_kheap_dynamic_allocator()
+    //Initialize the dynamic allocator of kernel heap with the given start address, size & limit
+    //All pages in the given range should be allocated
+    //Remember: call the initialize_dynamic_allocator(..) to complete the initialization
+    //Return:
+    //    On success: 0
+    //    Otherwise (if no memory OR initial size exceed the given limit): E_NO_MEM
 
-	//Comment the following line(s) before start coding...
-	panic("not implemented yet");
+    //Comment the following line(s) before start coding...
+    //panic("not implemented yet");
+    //return 0;
+
+	segment_break = start = ROUNDDOWN(daStart, PAGE_SIZE);
+    initSizeToAllocate = ROUNDUP(initSizeToAllocate, PAGE_SIZE);
+
+    if(daStart + initSizeToAllocate > daLimit)
+        return E_NO_MEM;
+
+    segment_break += initSizeToAllocate;
+    allocate_map_chunck_of_pages(start, segment_break);
+
+	hard_limit = daLimit;
+	initialize_dynamic_allocator(start, initSizeToAllocate);
+
+
 	return 0;
 }
 
