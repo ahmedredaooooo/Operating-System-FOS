@@ -105,9 +105,62 @@ void* kmalloc(unsigned int size)
 	// use "isKHeapPlacementStrategyFIRSTFIT() ..." functions to check the current strategy
 
 	//change this "return" according to your answer
-	kpanic_into_prompt("kmalloc() is not implemented yet...!!");
-	return NULL;
+	//kpanic_into_prompt("kmalloc() is not implemented yet...!!");
+	//return NULL;
+	if(size<=DYN_ALLOC_MAX_BLOCK_SIZE)
+		return alloc_block_FF(size);
+	else
+	{
+
+		uint32 num_of_pages=ROUNDUP(size,4096)/4096,free_pages=0,max_free=0,first_add=-1;
+		for(int i=hard_limit+4096;i<KERNEL_HEAP_MAX;i+=4096)
+		{
+			int x=PDX(i),y=PTX(i);
+			if(is_page_filled[x][y]==0)
+			{
+				if(first_add==-1)
+					first_add=i;
+				free_pages++;
+				if(free_pages==num_of_pages)
+					break;
+			}
+			else{
+				free_pages=0;
+				first_add=-1;
+			}
+		}
+		if(free_pages==num_of_pages && isKHeapPlacementStrategyFIRSTFIT())
+		{
+			uint32 va_of_first_page=0;
+			for(int i=first_add;i<KERNEL_HEAP_MAX && num_of_pages!=0;i+=4096)
+			{
+				int x=PDX(i),y=PTX(i);
+				if(is_page_filled[x][y]==0)
+				{
+					struct FrameInfo *ptr_frame_info;
+					int ret = allocate_frame(&ptr_frame_info);
+					if(ret != 0){
+						cprintf("in the null");
+						return NULL;
+					}
+					else
+					{
+						map_frame(ptr_page_directory, ptr_frame_info, i, PERM_PRESENT | PERM_WRITEABLE);// WHAT ABOUT PERM
+					}
+					if(va_of_first_page==0)
+						va_of_first_page=i;
+
+					is_page_filled[x][y] = va_of_first_page;
+					num_of_pages--;
+				}
+
+			}
+			return (void *) va_of_first_page;
+		}
+	}
+		return NULL;
 }
+
 
 void kfree(void* virtual_address)
 {
