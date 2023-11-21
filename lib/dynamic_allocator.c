@@ -89,7 +89,7 @@ void *alloc_block_at(void* va, uint32 size)
 
 	// add Meta-data after block if there's enough capacity
 	// else take the whole capacity for the program
-	if (cur->size - size > 2 * sizeOfMetaData()) // split
+	if (cur->size - size >= 2 * sizeOfMetaData()) // split
 	{
 		struct BlockMetaData* next = (struct BlockMetaData *)(size + sizeOfMetaData() + (uint32)cur);
 		next->is_free = 1;
@@ -174,7 +174,7 @@ void* alloc_block_FF(uint32 size)
     struct BlockMetaData *next;
     int last_block_size;
     struct BlockMetaData *ptr;
-    pos:
+
     LIST_FOREACH(ptr,&mem_block_list)
     {
         uint32 x=(size+sizeOfMetaData());
