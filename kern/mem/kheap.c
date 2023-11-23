@@ -124,47 +124,54 @@ void* kmalloc(unsigned int size)
 	else
 	{
 
-		uint32 num_of_pages = ROUNDUP(size, PAGE_SIZE) / PAGE_SIZE, free_pages = 0, max_free = 0, first_add = -1;
-		for (int i = hard_limit + PAGE_SIZE; i < KERNEL_HEAP_MAX; i += PAGE_SIZE)
+		uint32 num_of_pages = ROUNDUP(size, 4096) / 4096, free_pages = 0, max_free = 0, first_add = -1;
+		for(int i = hard_limit + 4096; i < KERNEL_HEAP_MAX; i += 4096)
 		{
-			if (!is_page_filled[PDX(i)][PTX(i)])
+			int x = PDX(i), y = PTX(i);
+			if(is_page_filled[x][y] == 0)
 			{
-				if (first_add == -1)
+				if(first_add == -1)
 					first_add = i;
 				free_pages++;
-				if (free_pages == num_of_pages)
+				if(free_pages == num_of_pages)
 					break;
 			}
 			else
 			{
-				free_pages = 0;
+				free_pages=0;
 				first_add=-1;
 			}
 		}
-		if (free_pages == num_of_pages && isKHeapPlacementStrategyFIRSTFIT())
+		if(free_pages == num_of_pages && isKHeapPlacementStrategyFIRSTFIT())
 		{
-
-			for (int i = first_add; num_of_pages--; i += PAGE_SIZE)
+			uint32 va_of_first_page = 0;
+			for(int i=first_add;i<KERNEL_HEAP_MAX && num_of_pages!=0;i+=4096)
 			{
-				if (!is_page_filled[PDX(i)][PTX(i)])
+				int x=PDX(i),y=PTX(i);
+				if(is_page_filled[x][y]==0)
 				{
 					struct FrameInfo *ptr_frame_info;
 					int ret = allocate_frame(&ptr_frame_info);
 
-					if (!ret)
+					if(ret != 0)
 					{
+						cprintf("in the null");
 						return NULL;
 					}
 					else
 					{
 						map_frame(ptr_page_directory, ptr_frame_info, i, PERM_PRESENT | PERM_WRITEABLE);// WHAT ABOUT PERM
 					}
-					is_page_filled[x][y] = first_add;
+					if(va_of_first_page==0)
+						va_of_first_page=i;
+
+					is_page_filled[x][y] = va_of_first_page;
+					num_of_pages--;
 				}
 
 			}
-			is_page_filled[PDX(first_add)][PTX(first_add)] = -ROUNDUP(size, PAGE_SIZE);
-			return (void *) first_add;
+			is_page_filled[PDX(first_add)][PTX(first_add)] = -ROUNDUP(size, 4096);
+			return (void *) va_of_first_page;
 		}
 	}
 		return NULL;
@@ -184,7 +191,7 @@ void kfree(void* virtual_address)
 	else
 	{
 		uint32 va = (uint32)virtual_address;
-		va = ROUNDDOWN(va, PAGE_SIZE);
+		va = ROUNDDOWN(va, 4096);
 		uint32 x = PDX(va), y = PTX(va);
 		uint32 first_page = is_page_filled[x][y];
 		if (is_page_filled[x][y] < 0)
@@ -192,7 +199,7 @@ void kfree(void* virtual_address)
 		if(first_page == 0)
 			return;
 
-		for(uint32 i = first_page, c = (-is_page_filled[PDX(i)][PTX(i)]) / PAGE_SIZE; c--; i += PAGE_SIZE)
+		for(uint32 i = first_page, c = (-is_page_filled[PDX(i)][PTX(i)]) / 4096; c--; i += 4096)
 		{
 			uint32 x = PDX(i), y = PTX(i);
 			struct FrameInfo *del_frame;
@@ -256,7 +263,6 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 void kfreeall()
 {
 	panic("Not implemented!");
-
 }
 
 void kshrink(uint32 newSize)
@@ -284,7 +290,6 @@ void kexpand(uint32 newSize)
 
 //	A call with virtual_address = null is equivalent to kmalloc().
 //	A call with new_size = zero is equivalent to kfree().
-
 
 void *krealloc(void *virtual_address, uint32 new_size)
 {
