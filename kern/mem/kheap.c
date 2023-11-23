@@ -6,20 +6,32 @@
 
 
 // OUR-HELPER
-void allocate_map_chunck_of_pages(uint32 start, uint32 end)
+void allocate_map_chunck_of_pages(uint32 start, uint32 end, enum ALLOCATOR_TYPE AT)
 {
 	for(uint32 va = start; va < end; va += PAGE_SIZE)
 	{
 		struct FrameInfo *ptr_frame_info;
 		allocate_frame(&ptr_frame_info); // panic if not success
 		map_frame(ptr_page_directory, ptr_frame_info, va, PERM_WRITEABLE | PERM_PRESENT);// WHAT ABOUT PERM
+		if (AT == PAGE_ALLOCATOR)
+			is_page_filled[PDX(va)][PTX(va)] = start;
 	}
+
+	if (AT == PAGE_ALLOCATOR)
+		is_page_filled[PDX(start)][PTX(start)] = start - end;
 }
 
 void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end)
 {
-	for(uint32 va = start; va < end; va += PAGE_SIZE)
+	for(uint32 va = start, *del = 0; va < end; va += PAGE_SIZE)
 		unmap_frame(ptr_page_directory, va);
+}
+
+uint32 get_free_size(uint32 *va)
+{
+	uint32 *i = va;
+	for (; !is_page_filled[PDX(i)][PTX(i)]; i += PAGE_SIZE);
+	return i - va;
 }
 
 int initialize_kheap_dynamic_allocator(uint32 daStart, uint32 initSizeToAllocate, uint32 daLimit)
@@ -43,7 +55,7 @@ int initialize_kheap_dynamic_allocator(uint32 daStart, uint32 initSizeToAllocate
         return E_NO_MEM;
 
     segment_break += initSizeToAllocate;
-    allocate_map_chunck_of_pages(start, segment_break);
+    allocate_map_chunck_of_pages(start, segment_break, PAGE_ALLOCATOR);
 
 	hard_limit = daLimit;
 	initialize_dynamic_allocator(start, initSizeToAllocate);
@@ -83,7 +95,7 @@ void* sbrk(int increment)
 		if (segment_break + increment > hard_limit)
 			panic("brk of block allocator can not exceed hard_limit of block allocator");
 		uint32 begin = ROUNDUP(segment_break, PAGE_SIZE), end = ROUNDUP(segment_break + increment, PAGE_SIZE);
-		allocate_map_chunck_of_pages(begin, end);
+		allocate_map_chunck_of_pages(begin, end, PAGE_ALLOCATOR);
 		segment_break = end;
 	}
 	else
@@ -107,55 +119,52 @@ void* kmalloc(unsigned int size)
 	//change this "return" according to your answer
 	//kpanic_into_prompt("kmalloc() is not implemented yet...!!");
 	//return NULL;
-	if(size<=DYN_ALLOC_MAX_BLOCK_SIZE)
+	if (size <= DYN_ALLOC_MAX_BLOCK_SIZE)
 		return alloc_block_FF(size);
 	else
 	{
 
-		uint32 num_of_pages=ROUNDUP(size,4096)/4096,free_pages=0,max_free=0,first_add=-1;
-		for(int i=hard_limit+4096;i<KERNEL_HEAP_MAX;i+=4096)
+		uint32 num_of_pages = ROUNDUP(size, PAGE_SIZE) / PAGE_SIZE, free_pages = 0, max_free = 0, first_add = -1;
+		for (int i = hard_limit + PAGE_SIZE; i < KERNEL_HEAP_MAX; i += PAGE_SIZE)
 		{
-			int x=PDX(i),y=PTX(i);
-			if(is_page_filled[x][y]==0)
+			if (!is_page_filled[PDX(i)][PTX(i)])
 			{
-				if(first_add==-1)
-					first_add=i;
+				if (first_add == -1)
+					first_add = i;
 				free_pages++;
-				if(free_pages==num_of_pages)
+				if (free_pages == num_of_pages)
 					break;
 			}
-			else{
-				free_pages=0;
+			else
+			{
+				free_pages = 0;
 				first_add=-1;
 			}
 		}
-		if(free_pages==num_of_pages && isKHeapPlacementStrategyFIRSTFIT())
+		if (free_pages == num_of_pages && isKHeapPlacementStrategyFIRSTFIT())
 		{
-			uint32 va_of_first_page=0;
-			for(int i=first_add;i<KERNEL_HEAP_MAX && num_of_pages!=0;i+=4096)
+
+			for (int i = first_add; num_of_pages--; i += PAGE_SIZE)
 			{
-				int x=PDX(i),y=PTX(i);
-				if(is_page_filled[x][y]==0)
+				if (!is_page_filled[PDX(i)][PTX(i)])
 				{
 					struct FrameInfo *ptr_frame_info;
 					int ret = allocate_frame(&ptr_frame_info);
-					if(ret != 0){
-						cprintf("in the null");
+
+					if (!ret)
+					{
 						return NULL;
 					}
 					else
 					{
 						map_frame(ptr_page_directory, ptr_frame_info, i, PERM_PRESENT | PERM_WRITEABLE);// WHAT ABOUT PERM
 					}
-					if(va_of_first_page==0)
-						va_of_first_page=i;
-
-					is_page_filled[x][y] = va_of_first_page;
-					num_of_pages--;
+					is_page_filled[x][y] = first_add;
 				}
 
 			}
-			return (void *) va_of_first_page;
+			is_page_filled[PDX(first_add)][PTX(first_add)] = -ROUNDUP(size, PAGE_SIZE);
+			return (void *) first_add;
 		}
 	}
 		return NULL;
@@ -175,17 +184,19 @@ void kfree(void* virtual_address)
 	else
 	{
 		uint32 va = (uint32)virtual_address;
-		va = ROUNDDOWN(va, 4096);
+		va = ROUNDDOWN(va, PAGE_SIZE);
 		uint32 x = PDX(va), y = PTX(va);
 		uint32 first_page = is_page_filled[x][y];
+		if (is_page_filled[x][y] < 0)
+			first_page = va;
 		if(first_page == 0)
 			return;
 
-		for(uint32 i = first_page;i < KERNEL_HEAP_MAX ;i += 4096)
+		for(uint32 i = first_page, c = (-is_page_filled[PDX(i)][PTX(i)]) / PAGE_SIZE; c--; i += PAGE_SIZE)
 		{
 			uint32 x = PDX(i), y = PTX(i);
 			struct FrameInfo *del_frame;
-			if(is_page_filled[x][y] == first_page)
+			//if(is_page_filled[x][y] == first_page)
 			{
 				//cprintf("line 1");
 				//tlb_invalidate(ptr_page_directory,(void *)i);
@@ -195,8 +206,8 @@ void kfree(void* virtual_address)
 				unmap_frame(ptr_page_directory, i);
 				is_page_filled[x][y] = 0;
 			}
-			else
-				break;
+			//else
+				//break;
 
 		}
 	}
