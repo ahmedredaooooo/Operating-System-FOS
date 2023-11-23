@@ -284,10 +284,45 @@ void kexpand(uint32 newSize)
 //	A call with virtual_address = null is equivalent to kmalloc().
 //	A call with new_size = zero is equivalent to kfree().
 
+
 void *krealloc(void *virtual_address, uint32 new_size)
 {
 	//TODO: [PROJECT'23.MS2 - BONUS#1] [1] KERNEL HEAP - krealloc()
 	// Write your code here, remove the panic and write your code
-	return NULL;
-	panic("krealloc() is not implemented yet...!!");
+	//return NULL;
+	//panic("krealloc() is not implemented yet...!!");
+
+	if (!virtual_address)
+			return kmalloc(new_size);
+
+		if (!new_size)
+			return kfree(virtual_address), NULL;
+
+		uint8 is_BA_VA = (uint32)virtual_address >= start && (uint32)virtual_address < segment_break, is_small = new_size <= DYN_ALLOC_MAX_BLOCK_SIZE;
+		if (is_BA_VA ^ is_small)
+		{
+			void* ret = kmalloc(new_size);
+			if (ret)
+				kfree(virtual_address);
+			return ret;
+		}
+		if (is_BA_VA)
+			return realloc_block_FF(virtual_address, new_size);
+
+
+		uint32 prog_size = -is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size(virtual_address + prog_size);
+
+		if (new_size <= init_va_size)
+		{
+			kfree(virtual_address);
+			allocate_map_chunck_of_pages((uint32) virtual_address, (uint32) virtual_address + new_size, PAGE_ALLOCATOR);
+			return virtual_address;
+		}
+		else
+		{
+			void* ret = kmalloc(new_size);
+			if (ret)
+				kfree(virtual_address);
+			return ret;
+		}
 }
