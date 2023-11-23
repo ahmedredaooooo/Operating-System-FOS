@@ -387,7 +387,9 @@ int map_frame(uint32 *ptr_page_directory, struct FrameInfo *ptr_frame_info, uint
 			unmap_frame(ptr_page_directory , virtual_address);
 	}
 	ptr_frame_info->references++;
-
+	////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
+	ptr_frame_info->va = virtual_address;                ///////////////////Mtsnsaaaaaaaaaaaaaaaaaaaaaaaaaa44444444444444
+	////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
 	/*********************************************************************************/
 	/*NEW'23 el7:)
 	 * TODO: [DONE] map_frame(): KEEP THE VALUES OF THE AVAILABLE BITS*/
