@@ -775,11 +775,16 @@ void * create_user_directory()
 //===============================================
 void initialize_uheap_dynamic_allocator(struct Env* e, uint32 daStart, uint32 daLimit)
 {
-	//TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize_uheap_dynamic_allocator()
-	//Remember:
-	//	1) there's no initial allocations for the dynamic allocator of the user heap (=0)
-	//	2) call the initialize_dynamic_allocator(..) to complete the initialization
-	//panic("not implemented yet");
+    //TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize_uheap_dynamic_allocator()
+    //Remember:
+    //    1) there's no initial allocations for the dynamic allocator of the user heap (=0)
+    //    2) call the initialize_dynamic_allocator(..) to complete the initialization
+    //panic("not implemented yet");
+    e->start = daStart;
+    e->hard_limit = daLimit;
+    e->segment_break = daStart;//not garbage
+
+    initialize_dynamic_allocator(daStart,0);
 }
 
 //========================================================
