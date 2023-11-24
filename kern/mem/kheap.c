@@ -95,11 +95,11 @@ void* sbrk(int increment)
 		if (segment_break + increment > hard_limit)
 			panic("brk of block allocator can not exceed hard_limit of block allocator");
 		uint32 begin = ROUNDUP(segment_break, PAGE_SIZE), end = ROUNDUP(segment_break + increment, PAGE_SIZE);
-		allocate_map_chunck_of_pages(begin, end, PAGE_ALLOCATOR);
+		allocate_map_chunck_of_pages(begin, end, BLOCK_ALLOCATOR);
 		segment_break = end;
 	}
 	else
-	{
+	{// what if it goes down the start
 		uint32 begin = ROUNDUP(segment_break + increment, PAGE_SIZE), end = ROUNDUP(segment_break, PAGE_SIZE);
 		deallocate_unmap_chunck_of_pages(begin, end);
 		segment_break += increment;

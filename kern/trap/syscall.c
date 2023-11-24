@@ -507,13 +507,13 @@ void* sys_sbrk(int increment)
 	struct Env* env = curenv; //the current running Environment to adjust its break limit
 
 
-	if(increment==0)
+	if(increment == 0)
 	    	return (void *) env->segment_break;
-	else if(increment>0)
+	else if(increment > 0)
 	{
 		uint32 ret_segment = env->segment_break;
 
-		uint32 new_segment = ROUNDUP(increment+env->segment_break,4096);
+		uint32 new_segment = ROUNDUP(increment + env->segment_break, 4096);
 
 		if(new_segment <= env->hard_limit)
 		{
@@ -550,7 +550,7 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		 return (uint32)sys_sbrk(a1);
 		 break;
 	case SYS_free_user_mem:
-		if(a1 == 0 || a1 + a2 - 1 > USER_LIMIT)
+		if(a1 == 0 || a1 + a2 > USER_LIMIT)
 			sched_kill_env(curenv->env_id);
 		else{
 			sys_free_user_mem(a1,a2);
@@ -558,7 +558,7 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		}
 		break;
 	case SYS_allocate_user_mem:
-		if(a1 == 0 || a1 + a2 - 1 > USER_LIMIT)
+		if(a1 == 0 || a1 + a2 > USER_LIMIT)
 			sched_kill_env(curenv->env_id);
 		else
 			sys_allocate_user_mem(a1,a2);
