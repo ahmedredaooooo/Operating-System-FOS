@@ -86,7 +86,7 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 		if(wsSize < (curenv->page_WS_max_size))
 		{
 			//cprintf("PLACEMENT=========================WS Size = %d\n", wsSize );
-			//TODO: [PROJECT'23.MS2 - #15] [3] PAGE FAULT HANDLER - Placement
+			//TODO: [PROJECT'23.MS2 - #15] [3] PAGE FAULT HANDLER - Placement.
 			// Write your code here, remove the panic and write your code
 			//panic("page_fault_handler().PLACEMENT is not implemented yet...!!");
 			//refer to the project presentation and documentation for details
