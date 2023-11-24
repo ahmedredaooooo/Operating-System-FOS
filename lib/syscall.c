@@ -357,3 +357,11 @@ void sys_allocate_user_mem(uint32 virtual_address, uint32 size)
 	return;
 }
 
+// MS2 Code
+uint32 sys_get_hard_limit()
+{
+    //Comment the following line before start coding...
+    //panic("not implemented yet");
+
+    return syscall(SYS_get_hard_limit, 0, 0, 0, 0, 0);
+}

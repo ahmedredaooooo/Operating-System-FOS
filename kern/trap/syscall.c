@@ -255,6 +255,15 @@ int sys_pf_calculate_allocated_pages(void)
 /*******************************/
 /* USER HEAP SYSTEM CALLS */
 /*******************************/
+
+// MS2 Code
+uint32 sys_get_hard_limit()
+{
+    struct Env *e = curenv;
+    return  e->hard_limit;
+}
+//=====================================================================
+
 void sys_free_user_mem(uint32 virtual_address, uint32 size)
 {
 	if(isBufferingEnabled())
@@ -507,13 +516,13 @@ void* sys_sbrk(int increment)
 	struct Env* env = curenv; //the current running Environment to adjust its break limit
 
 
-	if(increment == 0)
+	if(increment==0)
 	    	return (void *) env->segment_break;
-	else if(increment > 0)
+	else if(increment>0)
 	{
 		uint32 ret_segment = env->segment_break;
 
-		uint32 new_segment = ROUNDUP(increment + env->segment_break, 4096);
+		uint32 new_segment = ROUNDUP(increment+env->segment_break,4096);
 
 		if(new_segment <= env->hard_limit)
 		{
@@ -565,6 +574,12 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		return 0;
 		break;
 	//=====================================================================
+
+		//MS2 Code
+	case SYS_get_hard_limit:
+		return sys_get_hard_limit();
+		break;
+		//=====================================================================
 	case SYS_cputs:
 		sys_cputs((const char*)a1,a2,(uint8)a3);
 		return 0;
@@ -737,7 +752,6 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 	case SYS_testNum:
 		tst(a1, a2, a3, (char)a4, a5);
 		return 0;
-
 	case SYS_get_heap_strategy:
 		return sys_get_heap_strategy();
 
