@@ -379,6 +379,10 @@ void fault_handler(struct Trapframe *tf)
 			//(e.g. pointing to unmarked user heap page, kernel or wrong access rights),
 			//your code is here
 
+			int perms = pt_get_page_permissions(faulted_env->env_page_directory, fault_va);
+			if (!(perms & PERM_WRITEABLE) || fault_va >= USER_LIMIT /* || unmarked page*/)
+				sched_kill_env(curenv->env_id);
+
 			/*============================================================================================*/
 		}
 
