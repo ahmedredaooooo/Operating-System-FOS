@@ -482,7 +482,7 @@ void* sys_sbrk(int increment)
 {
 	//TODO: [PROJECT'23.MS2 - #08] [2] USER HEAP - Block Allocator - sys_sbrk() [Kernel Side]
 	//MS2: COMMENT THIS LINE BEFORE START CODING====
-	return (void*)-1 ;
+	//return (void*)-1 ;
 	//====================================================
 
 	/*2023*/
@@ -507,6 +507,31 @@ void* sys_sbrk(int increment)
 	struct Env* env = curenv; //the current running Environment to adjust its break limit
 
 
+	if(increment==0)
+	    	return (void *) env->segment_break;
+	else if(increment>0)
+	{
+		uint32 ret_segment = env->segment_break;
+
+		uint32 new_segment = ROUNDUP(increment+env->segment_break,4096);
+
+		if(new_segment <= env->hard_limit)
+		{
+			env->segment_break = new_segment;
+			return (void *)ret_segment ;
+		}
+	}
+	else
+	{
+		if(env->segment_break + increment >= env->start )//what if it was allocated
+		{
+			env->segment_break += increment ;
+			return (void *)env->segment_break ;
+		}
+		else
+			return (void *)-1;
+	}
+	return (void *)-1;
 }
 
 /**************************************************************************/
