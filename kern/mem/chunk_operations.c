@@ -120,12 +120,26 @@ void allocate_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 	/*=============================================================================*/
 	//TODO: [PROJECT'23.MS2 - #10] [2] USER HEAP - allocate_user_mem() [Kernel Side]
 	/*REMOVE THESE LINES BEFORE START CODING */
-	inctst();
-	return;
+	//inctst();
+	//return;
 	/*=============================================================================*/
 
 	// Write your code here, remove the panic and write your code
-	panic("allocate_user_mem() is not implemented yet...!!");
+	//panic("allocate_user_mem() is not implemented yet...!!");
+
+	uint32* ptr_page_table = NULL;
+	int end = virtual_address + size;
+	for (int va = virtual_address; va < end; va += PAGE_SIZE)
+	{
+		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
+		e->is_page_filled[page_id] = virtual_address;
+
+		if (get_page_table(e->env_page_directory, va, &ptr_page_table) == TABLE_NOT_EXIST)
+			create_page_table(e->env_page_directory, va);
+		//cprintf("ttttttttttttttttttttttttttttt\n");
+		pt_set_page_permissions(e->env_page_directory, va, PERM_MARKED | PERM_WRITEABLE | PERM_USER, 0);
+	}
+	e->is_page_filled[(virtual_address - USER_HEAP_START) / PAGE_SIZE] = -size;
 }
 
 //=====================================
@@ -136,15 +150,29 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 	/*==========================================================================*/
 	//TODO: [PROJECT'23.MS2 - #12] [2] USER HEAP - free_user_mem() [Kernel Side]
 	/*REMOVE THESE LINES BEFORE START CODING */
-	inctst();
-	return;
+	//inctst();
+	//return;
 	/*==========================================================================*/
 
 	// Write your code here, remove the panic and write your code
-	panic("free_user_mem() is not implemented yet...!!");
+	//panic("free_user_mem() is not implemented yet...!!");
 
 	//TODO: [PROJECT'23.MS2 - BONUS#2] [2] USER HEAP - free_user_mem() IN O(1): removing page from WS List instead of searching the entire list
 
+	for (uint32 va = virtual_address, end = va + size; va < end; va += PAGE_SIZE)
+	{
+		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
+		e->is_page_filled[page_id] = 0;
+		pt_set_page_permissions(e->env_page_directory, va, 0, PERM_MARKED);
+		pf_remove_env_page(e, va);
+		unmap_frame(e->env_page_directory, va);
+		int dir_table_entry = e->env_page_directory[PDX(va)];
+		to_frame_info( EXTRACT_ADDRESS ( dir_table_entry ) );
+		bool isFree = 1;
+
+
+		env_page_ws_invalidate(e, va);
+	}
 }
 
 //=====================================

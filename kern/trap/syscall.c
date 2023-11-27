@@ -262,6 +262,15 @@ uint32 sys_get_hard_limit()
     struct Env *e = curenv;
     return  e->hard_limit;
 }
+
+uint32 sys_get_is_page_filled(uint32 idx, int write)
+{
+	if(write != -1)
+	{
+		curenv->is_page_filled[idx] = write;
+	}
+	return curenv->is_page_filled[idx];
+}
 //=====================================================================
 
 void sys_free_user_mem(uint32 virtual_address, uint32 size)
@@ -515,32 +524,30 @@ void* sys_sbrk(int increment)
 	 */
 	struct Env* env = curenv; //the current running Environment to adjust its break limit
 
+	uint32 ret = env->segment_break;
+	if (!increment)
+		return (void*)ret;
 
-	if(increment==0)
-	    	return (void *) env->segment_break;
-	else if(increment>0)
+	if (increment > 0)
 	{
-		uint32 ret_segment = env->segment_break;
-
-		uint32 new_segment = ROUNDUP(increment+env->segment_break,4096);
-
-		if(new_segment <= env->hard_limit)
-		{
-			env->segment_break = new_segment;
-			return (void *)ret_segment ;
-		}
+		if (env->segment_break + increment > env->hard_limit)
+			return (void*)-1;
+		// // logically expected use of marking ?
+		uint32 start = ROUNDUP(ret, PAGE_SIZE), end = ROUNDUP(ret + increment, PAGE_SIZE);
+		env->segment_break = end;
+		// marking them
+		allocate_user_mem(curenv, start, end - start);
 	}
 	else
 	{
-		if(env->segment_break + increment >= env->start )//what if it was allocated
-		{
-			env->segment_break += increment ;
-			return (void *)env->segment_break ;
-		}
-		else
-			return (void *)-1;
+		if (env->segment_break + increment < env->start)
+			return (void*)-1;
+		uint32 begin = ROUNDUP(env->segment_break + increment, PAGE_SIZE), end = ROUNDUP(env->segment_break, PAGE_SIZE);
+		sys_free_user_mem(begin, end - begin);
+		env->segment_break += increment;
+		ret = env->segment_break;
 	}
-	return (void *)-1;
+	return (void*)ret;
 }
 
 /**************************************************************************/
@@ -575,11 +582,14 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		break;
 	//=====================================================================
 
-		//MS2 Code
+	//MS2 Code
 	case SYS_get_hard_limit:
 		return sys_get_hard_limit();
 		break;
-		//=====================================================================
+	case SYS_get_is_page_filled:
+		return (uint32)sys_get_is_page_filled(a1, a2);
+		break;
+	//=====================================================================
 	case SYS_cputs:
 		sys_cputs((const char*)a1,a2,(uint8)a3);
 		return 0;

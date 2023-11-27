@@ -191,6 +191,8 @@ void* alloc_block_FF(uint32 size)
         ret=(uint32)sbrk(size+sizeOfMetaData());
     }
 
+	if (!~ret)
+		return NULL;
 
     if(LIST_LAST(&mem_block_list)->is_free==1)
     {

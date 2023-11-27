@@ -109,6 +109,8 @@ struct Env {
 	/*2023*/
 	//TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize of Env: add suitable code here
 	uint32 segment_break, start, hard_limit;
+	int is_page_filled[(USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE] ;
+
 	//==================================================================================
 
 	//================

@@ -55,7 +55,7 @@ int initialize_kheap_dynamic_allocator(uint32 daStart, uint32 initSizeToAllocate
         return E_NO_MEM;
 
     segment_break += initSizeToAllocate;
-    allocate_map_chunck_of_pages(start, segment_break, PAGE_ALLOCATOR);
+    allocate_map_chunck_of_pages(start, segment_break, BLOCK_ALLOCATOR);
 
 	hard_limit = daLimit;
 	initialize_dynamic_allocator(start, initSizeToAllocate);
@@ -99,7 +99,9 @@ void* sbrk(int increment)
 		segment_break = end;
 	}
 	else
-	{// what if it goes down the start
+	{
+		if (segment_break + increment < start)
+			panic("brk of block allocator can not underflow start of block allocator");
 		uint32 begin = ROUNDUP(segment_break + increment, PAGE_SIZE), end = ROUNDUP(segment_break, PAGE_SIZE);
 		deallocate_unmap_chunck_of_pages(begin, end);
 		segment_break += increment;
@@ -174,7 +176,7 @@ void* kmalloc(unsigned int size)
 			return (void *) va_of_first_page;
 		}
 	}
-		return NULL;
+	return NULL;
 }
 
 

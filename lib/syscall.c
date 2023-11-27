@@ -365,3 +365,9 @@ uint32 sys_get_hard_limit()
 
     return syscall(SYS_get_hard_limit, 0, 0, 0, 0, 0);
 }
+
+uint32 sys_get_is_page_filled(uint32 idx, int write)
+{
+	return syscall(SYS_get_is_page_filled, idx, write, 0, 0, 0);
+}
+
