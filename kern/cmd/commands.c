@@ -359,6 +359,8 @@ struct Env * CreateEnv(int number_of_arguments, char **arguments)
 	uint32 pageWSSize = __PWS_MAX_SIZE;		//arg#3 default
 	uint32 LRUSecondListSize = 0;			//arg#4 default
 	uint32 percent_WS_pages_to_remove = 0;	//arg#5 default
+	int BSDSchedNiceVal = -100;				//arg#5 default
+
 #if USE_KHEAP
 	{
 		switch (number_of_arguments)
@@ -366,17 +368,19 @@ struct Env * CreateEnv(int number_of_arguments, char **arguments)
 		case 5:
 			if(!isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX))
 			{
-				cprintf("ERROR: Current Replacement is NOT LRU LISTS, invalid number of args\nUsage: <command> <prog_name> <page_WS_size> [<LRU_second_list_size>] [<DYN_LOC_SCOPE_percent_WS_to_remove>]\naborting...\n");
+				cprintf("ERROR: Current Replacement is NOT LRU LISTS, invalid number of args\nUsage: <command> <prog_name> <page_WS_size> [<LRU_second_list_size>] [<BSD_Sched_Nice>]\naborting...\n");
 				return NULL;
 			}
-			percent_WS_pages_to_remove = strtol(arguments[4], NULL, 10);
+			//percent_WS_pages_to_remove = strtol(arguments[4], NULL, 10);
+			BSDSchedNiceVal = strtol(arguments[4], NULL, 10);
 			LRUSecondListSize = strtol(arguments[3], NULL, 10);
 			pageWSSize = strtol(arguments[2], NULL, 10);
 			break;
 		case 4:
 			if(!isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX))
 			{
-				percent_WS_pages_to_remove = strtol(arguments[3], NULL, 10);
+				//percent_WS_pages_to_remove = strtol(arguments[3], NULL, 10);
+				BSDSchedNiceVal = strtol(arguments[3], NULL, 10);
 			}
 			else
 			{
@@ -414,7 +418,11 @@ struct Env * CreateEnv(int number_of_arguments, char **arguments)
 			}
 		}
 		assert(percent_WS_pages_to_remove >= 0 && percent_WS_pages_to_remove <= 100);
-
+//		if (BSDSchedNiceVal != -100)
+//		{
+//			cprintf("nice value = %d\n", BSDSchedNiceVal);
+//			assert(BSDSchedNiceVal >= -20 && BSDSchedNiceVal <= 20);
+//		}
 	}
 #else
 	{
@@ -439,7 +447,12 @@ struct Env * CreateEnv(int number_of_arguments, char **arguments)
 #endif
 	assert(percent_WS_pages_to_remove >= 0 && percent_WS_pages_to_remove <= 100);
 	env = env_create(arguments[1], pageWSSize, LRUSecondListSize, percent_WS_pages_to_remove);
-
+	if (BSDSchedNiceVal != -100)
+	{
+		cprintf("nice value = %d\n", BSDSchedNiceVal);
+		assert(BSDSchedNiceVal >= -20 && BSDSchedNiceVal <= 20);
+		env_set_nice(env, BSDSchedNiceVal);
+	}
 	return env;
 }
 

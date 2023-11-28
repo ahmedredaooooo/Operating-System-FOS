@@ -7,6 +7,7 @@
 #endif
 
 #include <inc/environment_definitions.h>
+#include <inc/fixed_point.h>
 #include <kern/cpu/sched_helpers.h>
 
 //2018

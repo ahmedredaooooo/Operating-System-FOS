@@ -271,30 +271,48 @@ int pf_update_env_page(struct Env* ptr_env, uint32 virtual_address, struct Frame
 	//2022
 	if(ptr_disk_page_table == NULL || (ptr_disk_page_table != NULL && ptr_disk_page_table[PTX(virtual_address)]== 0))
 	{
+
 		uint32 VA = (uint32)virtual_address ;
 		if ((VA >= USER_HEAP_START && VA < USER_HEAP_MAX) || (VA >= USTACKBOTTOM && VA < USTACKTOP))
 		{
-			uint32 *ptr_table ;
-			struct FrameInfo* ptr_fi = get_frame_info(ptr_env->env_page_directory, virtual_address, &ptr_table);
-			//if VA already mapped on the same modified_page_frame_info, then write it directly from the VA
-			if (ptr_fi == modified_page_frame_info)
-			{
-				ret = pf_add_env_page(ptr_env, VA, (void*)virtual_address) ;
-				if (ret == E_NO_PAGE_FILE_SPACE)
-				{
-					panic("pf_update_env_page: page file out of space!") ;
-				}
-				ptr_env->nNewPageAdded++ ;
-				return ret ;
-			}
-			//Else, just add a new empty page to the page file, then update it with the given modified_page_frame_info in the below code
-			else
+		/*2023*/ //EL7 :)
+		/* REMOVE THIS CONDITION SINCE THE GIVEN virtual_address MIGHT HAVE PRESENT = 0
+		 * IN CASE OF LRU LIST APPROX (AS IT'S REMOVED FROM THE 2ND LIST WHICH ALREADY
+		 * HAS PRESENT = 0. THIS LEAD TO THROUGH FAULT WHEN ATTEMPT TO ADD A PAGE TO DISK
+		 * WITH dataSrc NOT MAPPED!
+		 */
+//			uint32 *ptr_table ;
+//			struct FrameInfo* ptr_fi = get_frame_info(ptr_env->env_page_directory, virtual_address, &ptr_table);
+//			cprintf("pf_update: 1.3\n");
+//
+//			//if VA already mapped on the same modified_page_frame_info, then write it directly from the VA
+//			if (ptr_fi == modified_page_frame_info)
+//			{
+//				cprintf("pf_update: 1.3.1\n");
+//
+//				ret = pf_add_env_page(ptr_env, VA, (void*)virtual_address) ;
+//				cprintf("pf_update: 1.3.2\n");
+//
+//				if (ret == E_NO_PAGE_FILE_SPACE)
+//				{
+//					panic("pf_update_env_page: page file out of space!") ;
+//				}
+//				//cprintf("[%s] adding page with content\n",ptr_env->prog_name);
+//
+//				ptr_env->nNewPageAdded++ ;
+//				return ret ;
+//			}
+//			//Else, just add a new empty page to the page file, then update it with the given modified_page_frame_info in the below code
+//			else
 			{
 				ret = pf_add_empty_env_page(ptr_env, VA, 0);
+
 				if (ret == E_NO_PAGE_FILE_SPACE)
 				{
 					panic("pf_update_env_page: attempt to add a new page, but page file out of space!") ;
 				}
+				//cprintf("[%s] adding EMPTY page with content\n",ptr_env->prog_name);
+
 				ptr_env->nNewPageAdded++ ;
 			}
 		}
@@ -305,15 +323,19 @@ int pf_update_env_page(struct Env* ptr_env, uint32 virtual_address, struct Frame
 	}
 	//2022 END========================================
 
+
 	get_disk_page_table(ptr_env->disk_env_pgdir, virtual_address, 0, &ptr_disk_page_table);
 	uint32 dfn=ptr_disk_page_table[PTX(virtual_address)];
+
 #if USE_KHEAP
 	{
 		//FIX: we should implement a better solution for this, but for now
 		//		we are using an unused VA in the invalid area of kernel at 0xef800000 (the current USER_LIMIT)
 		//		to do temp initialization of a frame.
 		map_frame(ptr_env->env_page_directory, modified_page_frame_info, USER_LIMIT, 0);
+
 		ret = write_disk_page(dfn, (void*)ROUNDDOWN(USER_LIMIT, PAGE_SIZE));
+
 		// TEMPORARILY increase the references to prevent unmap_frame from removing the frame
 		modified_page_frame_info->references += 1;
 		unmap_frame(ptr_env->env_page_directory, USER_LIMIT);
@@ -364,9 +386,9 @@ int pf_read_env_page(struct Env* ptr_env, void* virtual_address)
 	get_disk_page_table(ptr_env->disk_env_pgdir, (uint32) virtual_address, 0, &ptr_disk_page_table);
 	if(ptr_disk_page_table == 0) return E_PAGE_NOT_EXIST_IN_PF;
 
-	uint32 dfn = ptr_disk_page_table[PTX(virtual_address)];
+	uint32 dfn=ptr_disk_page_table[PTX(virtual_address)];
 
-	if(dfn == 0) return E_PAGE_NOT_EXIST_IN_PF;
+	if( dfn == 0) return E_PAGE_NOT_EXIST_IN_PF;
 
 	int disk_read_error = read_disk_page(dfn, virtual_address);
 
