@@ -108,7 +108,8 @@ struct Env {
 
 	/*2023*/
 	//TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize of Env: add suitable code here
-
+	uint32 segment_break, start, hard_limit;
+	int is_page_filled[(USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE];
 	//==================================================================================
 
 	//================
@@ -123,6 +124,7 @@ struct Env {
 #else
 	struct WorkingSetElement ptr_pageWorkingSet[__PWS_MAX_SIZE];
 	//uint32 page_last_WS_index;
+	struct WS_List PageWorkingSetList ;	//LRU Approx: List of available WS elements
 #endif
 	uint32 page_last_WS_index;
 	unsigned int page_WS_max_size;
@@ -132,7 +134,6 @@ struct Env {
 	uint32 table_last_WS_index;
 
 	//TODO: [PROJECT'23.MS3 - #0 GIVENS] [1] FAULT HANDLER REPLACEMENT - Data structures of LRU Approx replacement policy
-	struct WS_List PageWorkingSetList ;	//LRU Approx: List of available WS elements
 	struct WS_List ActiveList ;		//LRU Approx: ActiveList that should work as FCFS
 	struct WS_List SecondList ;		//LRU Approx: SecondList that should work as LRU
 	int ActiveListSize ;			//LRU Approx: Max allowed size of ActiveList

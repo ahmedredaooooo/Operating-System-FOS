@@ -31,19 +31,28 @@ static inline uint8 isKHeapPlacementStrategyWORSTFIT(){if(_KHeapPlacementStrateg
 
 //***********************************
 
+// OUR--HELPER
+enum ALLOCATOR_TYPE {PAGE_ALLOCATOR, BLOCK_ALLOCATOR};
+void allocate_map_chunck_of_pages(uint32 start, uint32 end, enum ALLOCATOR_TYPE AT); // [start, end[
+void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end); // [start, end[
+uint32 get_free_size(uint32 va);
+//====================================================================================
+
 void* kmalloc(unsigned int size);
 void kfree(void* virtual_address);
 void *krealloc(void *virtual_address, unsigned int new_size);
 
 unsigned int kheap_virtual_address(unsigned int physical_address);
-unsigned int kheap_physical_address(unsigned int virtual_address);
+unsigned int kheap_physical_address(unsigned int vir0tual_address);
 
 int numOfKheapVACalls ;
 
 
 /*2023*/
-//TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialization: add suitable code here
 
+//TODO: [PROJECT'23.MS2 - #01] [1] KERNEL HEAP - initialization: add suitable code here
+uint32 start, segment_break, hard_limit;
+int is_page_filled[1025][1025];
 //====================================================================================
 
 #endif // FOS_KERN_KHEAP_H_

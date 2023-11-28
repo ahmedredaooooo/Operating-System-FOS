@@ -67,7 +67,10 @@
 #define PTE_PS		0x080	// Page Size
 #define PTE_MBZ		0x180	// Bits must be zero
 #define PERM_BUFFERED 0x200 //Page it buffered
+// our codeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+#define PERM_MARKED 0x800 //Page it buffered
 
+///////////////////////
 // The PERM_AVAILABLE bits aren't used by the kernel or interpreted by the
 // hardware, so user processes are allowed to set them arbitrarily.
 #define PERM_AVAILABLE	0xE00	// Available for software use

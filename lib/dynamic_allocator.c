@@ -62,6 +62,23 @@ void *alloc_block(uint32 size, int ALLOC_STRATEGY)
 // 4) PRINT BLOCKS LIST:
 //===========================
 
+
+/*
+void print_blocks_list(struct MemBlock_LIST list)
+{
+        cprintf("=========================================\n");
+        struct BlockMetaData* blk ;
+        cprintf("\nDynAlloc Blocks List:\n");
+        LIST_FOREACH(blk, &list)
+        {
+                cprintf("(va: %x, size: %d, isFree: %d)\n", blk, blk->size, blk->is_free) ;
+        }
+        cprintf("sbrk -> %x\n=========================================\n", sbrk(0));
+
+}
+
+ */
+
 void print_blocks_list(struct MemBlock_LIST list)
 {
 	cprintf("=========================================\n");
@@ -74,6 +91,7 @@ void print_blocks_list(struct MemBlock_LIST list)
 	cprintf("=========================================\n");
 
 }
+
 //
 ////********************************************************************************//
 ////********************************************************************************//
@@ -89,9 +107,13 @@ void *alloc_block_at(void* va, uint32 size)
 
 	// add Meta-data after block if there's enough capacity
 	// else take the whole capacity for the program
-	if (cur->size - size > 2 * sizeOfMetaData()) // split
+	if (cur->size - size >= 2 * sizeOfMetaData()) // split
 	{
 		struct BlockMetaData* next = (struct BlockMetaData *)(size + sizeOfMetaData() + (uint32)cur);
+/*		void* roundedNext = ROUNDUP((void*)next, PAGE_SIZE);
+		uint32 diff = (roundedNext - (void*)next), extra = 0;
+		if (diff > 0 && diff < sizeOfMetaData())
+			extra = diff, next = roundedNext;*/
 		next->is_free = 1;
 		next->size = cur->size - (size + sizeOfMetaData());
 		LIST_INSERT_AFTER(&mem_block_list, cur, next);
@@ -125,6 +147,7 @@ void *expand_mem(uint32 requiredFitSize)
 //============================ REQUIRED FUNCTIONS ==================================//
 //==================================================================================//
 
+bool is_initialized = 0;
 //==================================
 // [1] INITIALIZE DYNAMIC ALLOCATOR:
 //==================================
@@ -134,9 +157,9 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpac
 	//DON'T CHANGE THESE LINES=================
 	if (initSizeOfAllocatedSpace == 0)
 		return ;
+	is_initialized = 1;
 	//=========================================
 	//=========================================
-
 	//TODO: [PROJECT'23.MS1 - #5] [3] DYNAMIC ALLOCATOR - initialize_dynamic_allocator()
 	//panic("initialize_dynamic_allocator is not implemented yet");
 
@@ -153,62 +176,60 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpac
 //=========================================
 // [4] ALLOCATE BLOCK BY FIRST FIT:
 //=========================================
-void *alloc_block_FF(uint32 size)
+void* alloc_block_FF(uint32 size)
 {
-	//TODO: [PROJECT'23.MS1 - #6] [3] DYNAMIC ALLOCATOR - alloc_block_FF()
-	//panic("alloc_block_FF is not implemented yet");
-	if(size==0)
+    //TODO: [PROJECT'23.MS1 - #6] [3] DYNAMIC ALLOCATOR - alloc_block_FF()
+    //panic("alloc_block_FF is not implemented yet");
+    if(size==0)
+        return NULL;
+
+    if (!is_initialized)
+    {
+        uint32 required_size = size + sizeOfMetaData();
+        uint32 da_start = (uint32)sbrk(required_size);
+        //get new break since it's page aligned! thus, the size can be more than the required one
+        uint32 da_break = (uint32)sbrk(0);
+        initialize_dynamic_allocator(da_start, da_break - da_start);
+    }
+
+    struct BlockMetaData *next;
+    int last_block_size;
+    struct BlockMetaData *ptr;
+
+    LIST_FOREACH(ptr,&mem_block_list)
+    {
+        uint32 x=(size+sizeOfMetaData());
+        if(ptr->is_free==1 && (uint32)x<=(uint32)ptr->size)
+            return alloc_block_at(ptr + 1, size);
+    }
+
+    uint32 ret;
+/*    if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
+    {
+        ret=(uint32)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
+    }
+    else*/
+    {
+        ret=(uint32)sbrk(size+sizeOfMetaData());
+    }
+
+	if (!~ret)
 		return NULL;
-	struct BlockMetaData *next;
-	bool flag=0;
-	int last_block_size;
-	struct BlockMetaData *ptr;
-	LIST_FOREACH(ptr,&mem_block_list)
-	{
-		uint32 x=(size+sizeOfMetaData());
-		if(ptr->is_free==1 && (uint32)x<=(uint32)ptr->size)
-		{
-			flag=1;
-			return alloc_block_at(ptr + 1, size);
-		}
-	}
-	int ret;
-	if(!flag)
-	{
-		if(LIST_LAST(&mem_block_list)->is_free==1)
-		{
-			ret=(int)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
-		}
-		else
-		{
-			ret=(int)sbrk(size+sizeOfMetaData());
-		}
 
-		if(ret==-1)
-		{
-			return NULL;
-		}
-		else
-		{
-			if(LIST_LAST(&mem_block_list)->is_free==1)
-			{
-				LIST_LAST(&mem_block_list)->is_free=0;
-				LIST_LAST(&mem_block_list)->size=size+sizeOfMetaData();
-			}
-			else
-			{
-				uint32 next_address=(uint32)LIST_LAST(&mem_block_list)+LIST_LAST(&mem_block_list)->size;
-				next=(struct BlockMetaData *)next_address;
-				next->is_free=0;
-				next->size=(size+sizeOfMetaData());
-				LIST_INSERT_TAIL(&mem_block_list,next);
-			}
-			uint32 tmp=(uint32)LIST_LAST(&mem_block_list)+sizeOfMetaData();
-			return (void *)tmp;
-		}
-	}
+/*    if(LIST_LAST(&mem_block_list)->is_free==1)
+    {
+        LIST_LAST(&mem_block_list)->size += (uint32)sbrk(0) - ret;
+    }
+    else*/
+    {
+        next = (struct BlockMetaData *)ret;
+        next->is_free = 1;
+        next->size = (uint32)sbrk(0) - ret;
+        LIST_INSERT_TAIL(&mem_block_list, next);
+        //free_block(next + 1); //after commenting if-else
+    }
 
-return NULL;
+    return alloc_block_FF(size);
 }
 //=========================================
 // [5] ALLOCATE BLOCK BY BEST FIT:
@@ -262,10 +283,13 @@ void free_block(void *va)
 	if(va==NULL)
 		return;
 
+
+
 	struct BlockMetaData *ptr,*removedBlock;
 	uint32 address=(uint32)va-sizeOfMetaData();
 	removedBlock=(struct BlockMetaData *)address;
 	removedBlock->is_free=1;
+
 
 	if(LIST_NEXT(removedBlock)!=NULL && LIST_NEXT(removedBlock)->is_free==1)
 	{
@@ -283,6 +307,7 @@ void free_block(void *va)
 		removedBlock->size=0;
 		LIST_REMOVE(&mem_block_list,removedBlock);
 	}
+
 }
 
 //=========================================

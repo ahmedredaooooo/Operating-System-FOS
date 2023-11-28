@@ -255,6 +255,20 @@ int sys_pf_calculate_allocated_pages(void)
 /*******************************/
 /* USER HEAP SYSTEM CALLS */
 /*******************************/
+
+// MS2 Code
+uint32 sys_get_hard_limit()
+{
+    struct Env *e = curenv;
+    return  e->hard_limit;
+}
+
+uint32 sys_get_is_page_filled(uint32 idx)
+{
+	return curenv->is_page_filled[idx];
+}
+//=====================================================================
+
 void sys_free_user_mem(uint32 virtual_address, uint32 size)
 {
 	if(isBufferingEnabled())
@@ -482,7 +496,7 @@ void* sys_sbrk(int increment)
 {
 	//TODO: [PROJECT'23.MS2 - #08] [2] USER HEAP - Block Allocator - sys_sbrk() [Kernel Side]
 	//MS2: COMMENT THIS LINE BEFORE START CODING====
-	return (void*)-1 ;
+	//return (void*)-1 ;
 	//====================================================
 
 	/*2023*/
@@ -506,7 +520,29 @@ void* sys_sbrk(int increment)
 	 */
 	struct Env* env = curenv; //the current running Environment to adjust its break limit
 
+	uint32 ret = env->segment_break;
+	if (!increment)
+		return (void*)ret;
 
+	if (increment > 0)
+	{
+		if (env->segment_break + increment > env->hard_limit)
+			return (void*)-1;
+		uint32 start = ROUNDUP(ret, PAGE_SIZE), end = ROUNDUP(ret + increment, PAGE_SIZE);
+		env->segment_break = end;
+		// marking them
+		allocate_user_mem(curenv, start, end - start);
+	}
+	else
+	{
+		if (env->segment_break + increment < env->start)
+			return (void*)-1;
+		uint32 begin = ROUNDUP(env->segment_break + increment, PAGE_SIZE), end = ROUNDUP(env->segment_break, PAGE_SIZE);
+		free_user_mem(curenv, begin, end - begin);
+		env->segment_break += increment;
+		ret = env->segment_break;
+	}
+	return (void*)ret;
 }
 
 /**************************************************************************/
@@ -525,7 +561,7 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		 return (uint32)sys_sbrk(a1);
 		 break;
 	case SYS_free_user_mem:
-		if(a1 == 0 || a1 + a2 - 1 > USER_LIMIT)
+		if(a1 == 0 || a1 + a2 > USER_LIMIT)
 			sched_kill_env(curenv->env_id);
 		else{
 			sys_free_user_mem(a1,a2);
@@ -533,11 +569,20 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		}
 		break;
 	case SYS_allocate_user_mem:
-		if(a1 == 0 || a1 + a2 - 1 > USER_LIMIT)
+		if(a1 == 0 || a1 + a2 > USER_LIMIT)
 			sched_kill_env(curenv->env_id);
 		else
 			sys_allocate_user_mem(a1,a2);
 		return 0;
+		break;
+	//=====================================================================
+
+	//MS2 Code
+	case SYS_get_hard_limit:
+		return sys_get_hard_limit();
+		break;
+	case SYS_get_is_page_filled:
+		return (uint32)sys_get_is_page_filled(a1);
 		break;
 	//=====================================================================
 	case SYS_cputs:
@@ -712,7 +757,6 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 	case SYS_testNum:
 		tst(a1, a2, a3, (char)a4, a5);
 		return 0;
-
 	case SYS_get_heap_strategy:
 		return sys_get_heap_strategy();
 

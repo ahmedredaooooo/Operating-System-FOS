@@ -117,15 +117,29 @@ uint32 calculate_required_frames(uint32* page_directory, uint32 sva, uint32 size
 //=====================================
 void allocate_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 {
-	/*====================================*/
-	/*Remove this line before start coding*/
-	inctst();
-	return;
-	/*====================================*/
-
+	/*=============================================================================*/
 	//TODO: [PROJECT'23.MS2 - #10] [2] USER HEAP - allocate_user_mem() [Kernel Side]
+	/*REMOVE THESE LINES BEFORE START CODING */
+	//inctst();
+	//return;
+	/*=============================================================================*/
+
 	// Write your code here, remove the panic and write your code
-	panic("allocate_user_mem() is not implemented yet...!!");
+	//panic("allocate_user_mem() is not implemented yet...!!");
+
+	uint32* ptr_page_table = NULL;
+	uint32 end = virtual_address + size;
+	for (uint32 va = virtual_address; va < end; va += PAGE_SIZE)
+	{
+		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
+		e->is_page_filled[page_id] = virtual_address;
+
+		if (get_page_table(e->env_page_directory, va, &ptr_page_table) == TABLE_NOT_EXIST)
+			create_page_table(e->env_page_directory, va);
+
+		pt_set_page_permissions(e->env_page_directory, va, PERM_MARKED | PERM_WRITEABLE | PERM_USER, 0);
+	}
+	e->is_page_filled[(virtual_address - USER_HEAP_START) / PAGE_SIZE] = size;
 }
 
 //=====================================
@@ -133,15 +147,41 @@ void allocate_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 //=====================================
 void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 {
-	/*====================================*/
-	/*Remove this line before start coding*/
-	inctst();
-	return;
-	/*====================================*/
-
+	/*==========================================================================*/
 	//TODO: [PROJECT'23.MS2 - #12] [2] USER HEAP - free_user_mem() [Kernel Side]
+	/*REMOVE THESE LINES BEFORE START CODING */
+	//inctst();
+	//return;
+	/*==========================================================================*/
+
 	// Write your code here, remove the panic and write your code
-	panic("free_user_mem() is not implemented yet...!!");
+	//panic("free_user_mem() is not implemented yet...!!");
+
+	//TODO: [PROJECT'23.MS2 - BONUS#2] [2] USER HEAP - free_user_mem() IN O(1): removing page from WS List instead of searching the entire list
+
+	for (uint32 va = virtual_address, end = va + size; va < end; va += PAGE_SIZE)
+	{
+		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
+		e->is_page_filled[page_id] = 0;
+		pt_set_page_permissions(e->env_page_directory, va, 0, PERM_MARKED);
+		pf_remove_env_page(e, va);
+		//env_page_ws_invalidate(e, va);
+		// O(1) deletion of working set element
+
+		if (pt_get_page_permissions(e->env_page_directory, va) & PERM_PRESENT)
+		{
+			uint32* ptr_page_table = NULL;
+			struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, va, &ptr_page_table)->element;
+			if (e->page_last_WS_element == wse)
+			{
+				e->page_last_WS_element = LIST_NEXT(wse);
+			}
+			LIST_REMOVE(&(e->page_WS_list), wse);
+
+			kfree(wse);
+		}
+		unmap_frame(e->env_page_directory, va);
+	}
 }
 
 //=====================================
@@ -158,7 +198,6 @@ void __free_user_mem_with_buffering(struct Env* e, uint32 virtual_address, uint3
 //=====================================
 void move_user_mem(struct Env* e, uint32 src_virtual_address, uint32 dst_virtual_address, uint32 size)
 {
-	//TODO: [PROJECT'23.MS2 - BONUS] [2] USER HEAP - move_user_mem() [Kernel Side]
 	//your code is here, remove the panic and write your code
 	panic("move_user_mem() is not implemented yet...!!");
 

@@ -17,4 +17,8 @@ void free(void* virtual_address);
 void sfree(void* virtual_address);
 void *realloc(void *virtual_address, uint32 new_size);
 
+// Our Helper Functions
+
+uint32 get_free_size(uint32 va);
+
 #endif

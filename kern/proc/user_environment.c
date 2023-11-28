@@ -405,7 +405,6 @@ struct Env* env_create(char* user_program_name, unsigned int page_WS_size, unsig
 
 	//[11] 2012, add the new env we have just created to the scheduler NEW queue
 	//	   2015: moved to the scheduler! since env_create() is responsible for creating the env only
-
 	return e;
 }
 
@@ -775,11 +774,16 @@ void * create_user_directory()
 //===============================================
 void initialize_uheap_dynamic_allocator(struct Env* e, uint32 daStart, uint32 daLimit)
 {
-	//TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize_uheap_dynamic_allocator()
-	//Remember:
-	//	1) there's no initial allocations for the dynamic allocator of the user heap (=0)
-	//	2) call the initialize_dynamic_allocator(..) to complete the initialization
-	//panic("not implemented yet");
+    //TODO: [PROJECT'23.MS2 - #07] [2] USER HEAP - initialize_uheap_dynamic_allocator()
+    //Remember:
+    //    1) there's no initial allocations for the dynamic allocator of the user heap (=0)
+    //    2) call the initialize_dynamic_allocator(..) to complete the initialization
+    //panic("not implemented yet");
+    e->start = daStart;
+    e->hard_limit = daLimit;
+    e->segment_break = daStart;//not garbage
+
+    initialize_dynamic_allocator(daStart,0);
 }
 
 //========================================================
@@ -799,6 +803,12 @@ void initialize_environment(struct Env* e, uint32* ptr_user_page_directory, unsi
 	int i;
 	e->env_page_directory = ptr_user_page_directory;
 	e->env_cr3 = phys_user_page_directory;
+
+	///////////////////////////////OUR CODE UPDATE MS2//////////////////////////////////
+	for (int i = 0; i < (USER_HEAP_MAX - USER_HEAP_START)/ PAGE_SIZE ; i++)
+		 e->is_page_filled[i] = 0;
+	///////////////////////////////////////////////////////////////////////////////////
+
 
 	//[TODODONE]: copy the kernel area only (to avoid copying the currently shared objects)
 	for (i = 0 ; i < PDX(USER_TOP) ; i++)

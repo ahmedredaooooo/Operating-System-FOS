@@ -29,6 +29,21 @@ struct UserProgramInfo userPrograms[] = {
 		{ "tsc2_slave2", "Slave program for tst_syscalls_2", PTR_START_OF(tst_syscalls_2_slave2)},
 		{ "tsc2_slave3", "Slave program for tst_syscalls_2", PTR_START_OF(tst_syscalls_2_slave3)},
 
+		{ "tm1", "tests malloc (1): PAGE ALLOCATOR", PTR_START_OF(tst_malloc_1)},
+		{ "tm2", "tests malloc (2): BLOCK ALLOCATOR", PTR_START_OF(tst_malloc_2)},
+		{ "tf1", "tests free (1): PAGE ALLOCATOR", PTR_START_OF(tst_free_1)},
+		{ "tf1_slave1", "tests free (1) slave1: try accessing values in freed spaces", PTR_START_OF(tst_free_1_slave1)},
+		{ "tf1_slave2", "tests free (1) slave2: try accessing values in freed spaces that is not accessed before", PTR_START_OF(tst_free_1_slave2)},
+		{ "tf2", "tests free (2): BLOCK ALLOCATOR", PTR_START_OF(tst_free_2)},
+		
+		{ "tff1", "tests first fit (1): PAGE ALLOCATOR", PTR_START_OF(tst_first_fit_1)},
+		{ "tff2", "tests first fit (2): BLOCK ALLOCATOR", PTR_START_OF(tst_first_fit_2)},
+		{ "tpp", "Tests the Page placement", PTR_START_OF(tst_placement)},
+		{ "tia", "tests handling of invalid memory access", PTR_START_OF(tst_invalid_access)},
+		{ "tia_slave1", "tia: access kernel", PTR_START_OF(tst_invalid_access_slave1)},
+		{ "tia_slave2", "tia: write on read only user page", PTR_START_OF(tst_invalid_access_slave2)},
+		{ "tia_slave3", "tia: access an unmarked (non-reserved) user heap page", PTR_START_OF(tst_invalid_access_slave3)},
+		{ "tia_slave4", "tia: access a non-exist page in page file, stack and heap", PTR_START_OF(tst_invalid_access_slave4)},
 		//[2] PROGRAMS
 		{ "fact", "Factorial Recursive", PTR_START_OF(fos_factorial)},
 		{ "fib", "Fibonacci Recursive", PTR_START_OF(fos_fibonacci)},
