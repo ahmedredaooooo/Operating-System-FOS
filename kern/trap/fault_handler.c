@@ -91,7 +91,7 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 		//panic("page_fault_handler().PLACEMENT is not implemented yet...!!");
 		//refer to the project presentation and documentation for details
 		fault_va = ROUNDDOWN(fault_va, PAGE_SIZE);
-		struct FrameInfo *ptr_frame_info = NULL,*ptr_New_frame;
+		struct FrameInfo *ptr_frame_info = NULL;
 		bool place_in_mem = 0;
 		if (pf_read_env_page(curenv, (void*)fault_va) == E_PAGE_NOT_EXIST_IN_PF)
 		{
@@ -105,9 +105,10 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 
 		if(place_in_mem)
 		{
-			allocate_frame(&ptr_New_frame);
-			map_frame(curenv->env_page_directory,ptr_New_frame,fault_va,PERM_USER|PERM_WRITEABLE|PERM_PRESENT);
+			allocate_frame(&ptr_frame_info);
+			map_frame(curenv->env_page_directory,ptr_frame_info,fault_va,PERM_USER|PERM_WRITEABLE|PERM_MARKED);
 			struct WorkingSetElement* WSE = env_page_ws_list_create_element(curenv, fault_va);
+			ptr_frame_info->element = WSE;
 			uint32 wsSize = LIST_SIZE(&(curenv->page_WS_list));
 			if (wsSize + 1 == curenv->page_WS_max_size)
 				curenv->page_last_WS_element = (struct WorkingSetElement*) LIST_FIRST(&(curenv->page_WS_list));
@@ -115,10 +116,8 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 				curenv->page_last_WS_element = NULL;
 			LIST_INSERT_TAIL(&(curenv->page_WS_list), WSE);
 		}
-		else{
-			//cprintf("2222222222222222222222222222222222222222222222222222\n");
+		else
 			sched_kill_env(curenv->env_id);
-		}
 	}
 	else
 	{

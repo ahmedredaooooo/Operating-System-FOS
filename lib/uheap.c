@@ -22,13 +22,13 @@ void InitializeUHeap()
 //==================================================================================//
 
 // OUR HELPER FUNCTIONS
-uint32 get_free_size(uint32 *va)
+uint32 get_free_size(uint32 va)
 {
 
 	//initialize_environment();
 	//cprintf("\n\n\n%day7aga\n\n\n", eis_page_filled[0]);
-	uint32 *i = va;
-	for (; !sys_get_is_page_filled(((int)i - USER_HEAP_START) / PAGE_SIZE, -1); i += PAGE_SIZE);
+	uint32 i = va;
+	for (; !sys_get_is_page_filled((i - USER_HEAP_START) / PAGE_SIZE); i += PAGE_SIZE);
 	return i - va;
 }
 
@@ -64,14 +64,14 @@ void* malloc(uint32 size)
 	for (uint32 va = sys_get_hard_limit() + PAGE_SIZE; va < USER_HEAP_MAX;)
 	{
 		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
-		int coming_free = get_free_size((uint32*)va);
+		int coming_free = get_free_size(va);
 		if (coming_free)
 			if (coming_free >= size)
 				return sys_allocate_user_mem(va, size), (void*)va;
 			else
 				va += coming_free;
 		else
-			va -= sys_get_is_page_filled(page_id, -1);
+			va += sys_get_is_page_filled(page_id);
 	}
 	return NULL;
 }
@@ -84,19 +84,21 @@ void free(void* virtual_address)
 	//TODO: [PROJECT'23.MS2 - #11] [2] USER HEAP - free() [User Side]
 	// Write your code here, remove the panic and write your code
 	//panic("free() is not implemented yet...!!");
-	uint32 va = ROUNDDOWN((uint32)virtual_address, PAGE_SIZE);
+	uint32 va = (uint32)virtual_address;
 
 	if (va < sys_get_hard_limit())
 		return free_block((void*)va);
 	if (va >= USER_HEAP_MAX || va < USER_HEAP_START)
 		panic("freeing invalid address in free()");
 
-	int start = (int)sys_get_is_page_filled((va - USER_HEAP_START) / PAGE_SIZE, -1);
+	va = ROUNDDOWN((uint32)virtual_address, PAGE_SIZE);
+
+	int start = sys_get_is_page_filled((va - USER_HEAP_START) / PAGE_SIZE);
 	if (!start)
 		return;
-	if (start < 0)
+	if (start > 0)
 		start = va;
-	int size = -(int)sys_get_is_page_filled((start - USER_HEAP_START) / PAGE_SIZE, -1);
+	uint32 size = sys_get_is_page_filled((start - USER_HEAP_START) / PAGE_SIZE);
 
 	return sys_free_user_mem(start, size);
 }

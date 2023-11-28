@@ -62,6 +62,23 @@ void *alloc_block(uint32 size, int ALLOC_STRATEGY)
 // 4) PRINT BLOCKS LIST:
 //===========================
 
+
+/*
+void print_blocks_list(struct MemBlock_LIST list)
+{
+        cprintf("=========================================\n");
+        struct BlockMetaData* blk ;
+        cprintf("\nDynAlloc Blocks List:\n");
+        LIST_FOREACH(blk, &list)
+        {
+                cprintf("(va: %x, size: %d, isFree: %d)\n", blk, blk->size, blk->is_free) ;
+        }
+        cprintf("sbrk -> %x\n=========================================\n", sbrk(0));
+
+}
+
+ */
+
 void print_blocks_list(struct MemBlock_LIST list)
 {
 	cprintf("=========================================\n");
@@ -74,6 +91,7 @@ void print_blocks_list(struct MemBlock_LIST list)
 	cprintf("=========================================\n");
 
 }
+
 //
 ////********************************************************************************//
 ////********************************************************************************//
@@ -92,6 +110,10 @@ void *alloc_block_at(void* va, uint32 size)
 	if (cur->size - size >= 2 * sizeOfMetaData()) // split
 	{
 		struct BlockMetaData* next = (struct BlockMetaData *)(size + sizeOfMetaData() + (uint32)cur);
+/*		void* roundedNext = ROUNDUP((void*)next, PAGE_SIZE);
+		uint32 diff = (roundedNext - (void*)next), extra = 0;
+		if (diff > 0 && diff < sizeOfMetaData())
+			extra = diff, next = roundedNext;*/
 		next->is_free = 1;
 		next->size = cur->size - (size + sizeOfMetaData());
 		LIST_INSERT_AFTER(&mem_block_list, cur, next);
@@ -182,11 +204,11 @@ void* alloc_block_FF(uint32 size)
     }
 
     uint32 ret;
-    if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
+/*    if(LIST_LAST(&mem_block_list)->is_free==1) // list in empty NULL access
     {
         ret=(uint32)sbrk(size+sizeOfMetaData()-LIST_LAST(&mem_block_list)->size);
     }
-    else
+    else*/
     {
         ret=(uint32)sbrk(size+sizeOfMetaData());
     }
@@ -194,16 +216,17 @@ void* alloc_block_FF(uint32 size)
 	if (!~ret)
 		return NULL;
 
-    if(LIST_LAST(&mem_block_list)->is_free==1)
+/*    if(LIST_LAST(&mem_block_list)->is_free==1)
     {
         LIST_LAST(&mem_block_list)->size += (uint32)sbrk(0) - ret;
     }
-    else
+    else*/
     {
-        next=(struct BlockMetaData *)ret;
+        next = (struct BlockMetaData *)ret;
         next->is_free = 1;
         next->size = (uint32)sbrk(0) - ret;
         LIST_INSERT_TAIL(&mem_block_list, next);
+        //free_block(next + 1); //after commenting if-else
     }
 
     return alloc_block_FF(size);
@@ -260,10 +283,13 @@ void free_block(void *va)
 	if(va==NULL)
 		return;
 
+
+
 	struct BlockMetaData *ptr,*removedBlock;
 	uint32 address=(uint32)va-sizeOfMetaData();
 	removedBlock=(struct BlockMetaData *)address;
 	removedBlock->is_free=1;
+
 
 	if(LIST_NEXT(removedBlock)!=NULL && LIST_NEXT(removedBlock)->is_free==1)
 	{
@@ -281,6 +307,7 @@ void free_block(void *va)
 		removedBlock->size=0;
 		LIST_REMOVE(&mem_block_list,removedBlock);
 	}
+
 }
 
 //=========================================

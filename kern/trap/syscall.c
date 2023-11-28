@@ -263,12 +263,8 @@ uint32 sys_get_hard_limit()
     return  e->hard_limit;
 }
 
-uint32 sys_get_is_page_filled(uint32 idx, int write)
+uint32 sys_get_is_page_filled(uint32 idx)
 {
-	if(write != -1)
-	{
-		curenv->is_page_filled[idx] = write;
-	}
 	return curenv->is_page_filled[idx];
 }
 //=====================================================================
@@ -532,7 +528,6 @@ void* sys_sbrk(int increment)
 	{
 		if (env->segment_break + increment > env->hard_limit)
 			return (void*)-1;
-		// // logically expected use of marking ?
 		uint32 start = ROUNDUP(ret, PAGE_SIZE), end = ROUNDUP(ret + increment, PAGE_SIZE);
 		env->segment_break = end;
 		// marking them
@@ -543,7 +538,7 @@ void* sys_sbrk(int increment)
 		if (env->segment_break + increment < env->start)
 			return (void*)-1;
 		uint32 begin = ROUNDUP(env->segment_break + increment, PAGE_SIZE), end = ROUNDUP(env->segment_break, PAGE_SIZE);
-		sys_free_user_mem(begin, end - begin);
+		free_user_mem(curenv, begin, end - begin);
 		env->segment_break += increment;
 		ret = env->segment_break;
 	}
@@ -587,7 +582,7 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		return sys_get_hard_limit();
 		break;
 	case SYS_get_is_page_filled:
-		return (uint32)sys_get_is_page_filled(a1, a2);
+		return (uint32)sys_get_is_page_filled(a1);
 		break;
 	//=====================================================================
 	case SYS_cputs:

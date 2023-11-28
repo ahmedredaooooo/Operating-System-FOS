@@ -382,9 +382,10 @@ void fault_handler(struct Trapframe *tf)
 
 			if((perms & PERM_PRESENT) && (!(perms & PERM_WRITEABLE) || !(perms & PERM_USER) || !(perms &PERM_MARKED )))
 			{
-				/*cprintf("11111111111111111111111111111111111111111111111111\n");
+				/*
 				cprintf("%d %d %d %d \n\n", perms&PERM_PRESENT, perms&PERM_WRITEABLE, perms&PERM_USER, perms&PERM_MARKED);
-				*/sched_kill_env(curenv->env_id);
+				*/
+				sched_kill_env(curenv->env_id);
 			}
 
 			/*============================================================================================*/

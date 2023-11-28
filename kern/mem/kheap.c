@@ -18,7 +18,7 @@ void allocate_map_chunck_of_pages(uint32 start, uint32 end, enum ALLOCATOR_TYPE 
 	}
 
 	if (AT == PAGE_ALLOCATOR)
-		is_page_filled[PDX(start)][PTX(start)] = start - end;
+		is_page_filled[PDX(start)][PTX(start)] = end - start;
 }
 
 void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end)
@@ -27,9 +27,9 @@ void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end)
 		unmap_frame(ptr_page_directory, va);
 }
 
-uint32 get_free_size(uint32 *va)
+uint32 get_free_size(uint32 va)
 {
-	uint32 *i = va;
+	uint32 i = va;
 	for (; !is_page_filled[PDX(i)][PTX(i)]; i += PAGE_SIZE);
 	return i - va;
 }
@@ -172,7 +172,7 @@ void* kmalloc(unsigned int size)
 				}
 
 			}
-			is_page_filled[PDX(first_add)][PTX(first_add)] = -ROUNDUP(size, 4096);
+			is_page_filled[PDX(first_add)][PTX(first_add)] = ROUNDUP(size, 4096);
 			return (void *) va_of_first_page;
 		}
 	}
@@ -196,12 +196,12 @@ void kfree(void* virtual_address)
 		va = ROUNDDOWN(va, 4096);
 		uint32 x = PDX(va), y = PTX(va);
 		uint32 first_page = is_page_filled[x][y];
-		if (is_page_filled[x][y] < 0)
-			first_page = va;
 		if(first_page == 0)
 			return;
+		if (is_page_filled[x][y] > 0)
+			first_page = va;
 
-		for(uint32 i = first_page, c = (-is_page_filled[PDX(i)][PTX(i)]) / 4096; c--; i += 4096)
+		for(uint32 i = first_page, c = is_page_filled[PDX(i)][PTX(i)] / 4096; c--; i += 4096)
 		{
 			uint32 x = PDX(i), y = PTX(i);
 			struct FrameInfo *del_frame;
@@ -318,7 +318,7 @@ void *krealloc(void *virtual_address, uint32 new_size)
 			return realloc_block_FF(virtual_address, new_size);
 
 
-		uint32 prog_size = -is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size(virtual_address + prog_size);
+		uint32 prog_size = is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size((uint32)virtual_address + prog_size);
 
 		if (new_size <= init_va_size)
 		{

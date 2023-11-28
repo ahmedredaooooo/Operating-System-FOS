@@ -35,7 +35,7 @@ static inline uint8 isKHeapPlacementStrategyWORSTFIT(){if(_KHeapPlacementStrateg
 enum ALLOCATOR_TYPE {PAGE_ALLOCATOR, BLOCK_ALLOCATOR};
 void allocate_map_chunck_of_pages(uint32 start, uint32 end, enum ALLOCATOR_TYPE AT); // [start, end[
 void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end); // [start, end[
-uint32 get_free_size(uint32 *va);
+uint32 get_free_size(uint32 va);
 //====================================================================================
 
 void* kmalloc(unsigned int size);
