@@ -182,6 +182,17 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		}
 		unmap_frame(e->env_page_directory, va);
 	}
+	/////    ms3 list
+
+	while(e->page_last_WS_element && LIST_FIRST(&(e->page_WS_list))->virtual_address != e->page_last_WS_element->virtual_address)
+	{
+		struct WorkingSetElement* first = LIST_FIRST(&(e->page_WS_list));
+		LIST_REMOVE(&(e->page_WS_list), first);
+		LIST_INSERT_TAIL(&(e->page_WS_list), first);
+		env_page_ws_print(e);
+		////// if condition ya Ayman //////
+	}
+	////
 }
 
 //=====================================
