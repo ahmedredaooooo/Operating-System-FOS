@@ -555,7 +555,7 @@ void env_set_nice(struct Env* e, int nice_value)
 	//TODO: [PROJECT'23.MS3 - #3] [2] BSD SCHEDULER - env_set_nice
 	//Your code is here
 	//Comment the following line
-	panic("Not implemented yet");
+//	panic("Not implemented yet");
 }
 int env_get_recent_cpu(struct Env* e)
 {

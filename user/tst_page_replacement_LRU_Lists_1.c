@@ -53,6 +53,8 @@ void _main(void)
 		if( (sys_pf_calculate_allocated_pages() - usedDiskPages) !=  0) panic("Unexpected extra/less pages have been added to page file.. NOT Expected to add new pages to the page file");
 
 		uint32 freePagesAfter = (sys_calculate_free_frames() + sys_calculate_modified_frames());
+//cprintf("\n\there in tst_page_replacement_LRU_Lists_1.c \n freePages = %d, freePagesAfter = %d", freePages, freePagesAfter);
+//		cprintf(" %d %d", freePagesAfter, freePages);
 		if( (freePages - freePagesAfter) != 0 )
 			panic("Extra memory are wrongly allocated... It's REplacement: expected that no extra frames are allocated");
 	}

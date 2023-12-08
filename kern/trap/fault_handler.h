@@ -13,6 +13,11 @@
 #include <inc/types.h>
 #include <inc/environment_definitions.h>
 
+
+// OUR HELPER FUNCTION
+void handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(struct Env*, struct WorkingSetElement*);
+//=========================================
+
 /******************************/
 /*	DATA 					  */
 /******************************/

@@ -454,7 +454,7 @@ void unmap_frame(uint32 *ptr_page_directory, uint32 virtual_address)
 	// Fill this function in
 	uint32 *ptr_page_table;
 	struct FrameInfo* ptr_frame_info = get_frame_info(ptr_page_directory, virtual_address, &ptr_page_table);
-        if (ptr_frame_info != 0 && (pt_get_page_permissions(ptr_page_directory, virtual_address) & PERM_PRESENT))
+	if (ptr_frame_info != 0 && (pt_get_page_permissions(ptr_page_directory, virtual_address) & PERM_PRESENT))
 	{
 		if (ptr_frame_info->isBuffered && !CHECK_IF_KERNEL_ADDRESS((uint32)virtual_address))
 			cprintf("WARNING: Freeing BUFFERED frame at va %x!!!\n", virtual_address) ;

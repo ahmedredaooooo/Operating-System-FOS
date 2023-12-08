@@ -370,4 +370,3 @@ uint32 sys_get_is_page_filled(uint32 idx)
 {
 	return syscall(SYS_get_is_page_filled, idx, 0, 0, 0, 0);
 }
-
