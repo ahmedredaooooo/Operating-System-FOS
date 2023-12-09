@@ -28,6 +28,7 @@ struct Env_Queue env_exit_queue;	// queue of all exited envs
 #if USE_KHEAP
 	struct Env_Queue *env_ready_queues;	// Ready queue(s) for the MLFQ or RR
 	uint8 *quantums ;					// Quantum(s) in ms for each level of the ready queue(s)
+	fixed_point_t load_avg;
 #else
 	//RR ONLY
 	struct Env_Queue env_ready_queues[1];	// Ready queue(s) for the RR

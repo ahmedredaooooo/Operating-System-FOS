@@ -8,6 +8,10 @@
 #include <inc/trap.h>
 #include <inc/memlayout.h>
 
+//MS3 Code
+#include <inc/fixed_point.h>
+//=====================================================================
+
 // An environment ID 'envid_t' has three parts:
 //
 // +1+---------------21-----------------+--------10--------+
@@ -111,6 +115,11 @@ struct Env {
 	uint32 segment_break, start, hard_limit;
 	int is_page_filled[(USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE];
 	//==================================================================================
+
+	///////////////////////////MS3 CODE
+	int nice_value;
+	fixed_point_t recent_cpu;
+	///////////////////////////
 
 	//================
 	/*WORKING SET*/
