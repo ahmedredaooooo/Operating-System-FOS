@@ -12,6 +12,9 @@
 //2020
 int sys_check_LRU_lists(uint32* active_list_content, uint32* second_list_content, int actual_active_list_size, int actual_second_list_size)
 {
+	cprintf("CURRENT WS CONTENT BEFORE CHECKING:\n");
+	//env_page_ws_print(curenv);
+
 	struct Env* env = curenv;
 	int active_list_validation = 1;
 	int second_list_validation = 1;
@@ -108,8 +111,8 @@ int sys_check_LRU_lists_free(uint32* list_content, int list_size)
 int sys_check_WS_list(uint32* WS_list_content, int actual_WS_list_size, uint32 last_WS_element_content, bool chk_status)
 {
 #if USE_KHEAP
-	cprintf("CURRENT WS CONTENT BEFORE CHECKING:\n");
-	env_page_ws_print(curenv);
+	//	cprintf("CURRENT WS CONTENT BEFORE CHECKING:\n");
+	//	env_page_ws_print(curenv);
 	struct Env* env = curenv;
 	int WS_list_validation = 1;
 	struct WorkingSetElement* ptr_WS_element;
@@ -132,15 +135,50 @@ int sys_check_WS_list(uint32* WS_list_content, int actual_WS_list_size, uint32 l
 	//if the order of the content is important to check
 	if (chk_status == 1)
 	{
+		//		int idx_WS_list = 0;
+		//		LIST_FOREACH(ptr_WS_element, &(env->page_WS_list))
+		//		{
+		//			if (ROUNDDOWN(ptr_WS_element->virtual_address, PAGE_SIZE) != ROUNDDOWN(WS_list_content[idx_WS_list], PAGE_SIZE))
+		//			{
+		//				WS_list_validation = 0;
+		//				break;
+		//			}
+		//			idx_WS_list++;
+		//		}
 		int idx_WS_list = 0;
-		LIST_FOREACH(ptr_WS_element, &(env->page_WS_list))
+
+		//Search for the correct index of the current WS element (if any)
+		if (last_WS_element_content)
+		{
+			for (int i = 0; i < actual_WS_list_size; ++i)
+			{
+				if (ROUNDDOWN(WS_list_content[i], PAGE_SIZE) == ROUNDDOWN(last_WS_element_content, PAGE_SIZE))
+				{
+					idx_WS_list = i ;
+					break;
+				}
+			}
+		}
+		cprintf("index of last WS element = %d\n",idx_WS_list);
+		//Check the expected content starting from last WS element (if any)
+		if (env->page_last_WS_element)
+			ptr_WS_element = env->page_last_WS_element;
+		else
+			ptr_WS_element = LIST_FIRST(&(env->page_WS_list));
+
+		cprintf("comparison star from va = %x\n",ptr_WS_element->virtual_address);
+
+		for (int i = 0; i < actual_WS_list_size; ++i)
 		{
 			if (ROUNDDOWN(ptr_WS_element->virtual_address, PAGE_SIZE) != ROUNDDOWN(WS_list_content[idx_WS_list], PAGE_SIZE))
 			{
 				WS_list_validation = 0;
 				break;
 			}
-			idx_WS_list++;
+			idx_WS_list = (idx_WS_list + 1) % env->page_WS_max_size;
+			ptr_WS_element = LIST_NEXT(ptr_WS_element);
+			if (ptr_WS_element == NULL)
+				ptr_WS_element = LIST_FIRST(&(env->page_WS_list));
 		}
 	}
 	else if (chk_status == 0 || chk_status == 2)

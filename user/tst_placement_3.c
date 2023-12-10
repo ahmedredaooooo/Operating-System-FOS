@@ -12,7 +12,22 @@ void _main(void)
 
 	int8 arr[PAGE_SIZE*1024*4];
 	int x = 0;
-	uint32 actual_active_list[13] = {0xedbfd000,0xeebfd000,0x803000,0x802000,0x801000,0x800000,0x205000,0x204000,0x203000,0x202000,0x201000,0x200000};
+	//uint32 actual_active_list[13] = {0xedbfd000,0xeebfd000,0x803000,0x802000,0x801000,0x800000,0x205000,0x204000,0x203000,0x202000,0x201000,0x200000};
+	uint32 actual_active_list[13] ;
+	{
+		actual_active_list[0] = 0xedbfd000;
+		actual_active_list[1] = 0xeebfd000;
+		actual_active_list[2] = 0x803000;
+		actual_active_list[3] = 0x802000;
+		actual_active_list[4] = 0x801000;
+		actual_active_list[5] = 0x800000;
+		actual_active_list[6] = 0x205000;
+		actual_active_list[7] = 0x204000;
+		actual_active_list[8] = 0x203000;
+		actual_active_list[9] = 0x202000;
+		actual_active_list[10] = 0x201000;
+		actual_active_list[11] = 0x200000;
+	}
 	uint32 actual_second_list[7] = {};
 	("STEP 0: checking Initial LRU lists entries ...\n");
 	{
@@ -86,8 +101,8 @@ void _main(void)
 	cprintf("STEP B: checking LRU lists entries After Required PAGES IN SECOND LIST...\n");
 	{
 		int check = sys_check_LRU_lists(actual_active_list, actual_second_list, 13, 4);
-			if(check == 0)
-				panic("LRU lists entries are not correct, check your logic again!!");
+		if(check == 0)
+			panic("LRU lists entries are not correct, check your logic again!!");
 	}
 	cprintf("STEP B passed: checking LRU lists entries After Required PAGES IN SECOND LIST test are correct\n\n\n");
 	cprintf("Congratulations!! Test of PAGE PLACEMENT THIRD SCENARIO completed successfully!!\n\n\n");

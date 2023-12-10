@@ -17,8 +17,24 @@ void _main(void)
 
 	//("STEP 0: checking Initial WS entries ...\n");
 	{
-		uint32 actual_active_list[5] = {0x803000, 0x801000, 0x800000, 0xeebfd000, 0x203000};
-		uint32 actual_second_list[5] = {0x202000, 0x201000, 0x200000, 0x802000, 0x205000};
+		//uint32 actual_active_list[5] = {0x803000, 0x801000, 0x800000, 0xeebfd000, 0x203000};
+		uint32 actual_active_list[5] ;
+		{
+			actual_active_list[0] = 0x803000;
+			actual_active_list[1] = 0x801000;
+			actual_active_list[2] = 0x800000;
+			actual_active_list[3] = 0xeebfd000;
+			actual_active_list[4] = 0x203000;
+		}
+		//uint32 actual_second_list[5] = {0x202000, 0x201000, 0x200000, 0x802000, 0x205000};
+		uint32 actual_second_list[5] ;
+		{
+			actual_second_list[0] = 0x202000 ;
+			actual_second_list[1] = 0x201000 ;
+			actual_second_list[2] = 0x200000 ;
+			actual_second_list[3] = 0x802000 ;
+			actual_second_list[4] = 0x205000 ;
+		}
 		int check = sys_check_LRU_lists(actual_active_list, actual_second_list, 5, 5);
 		if(check == 0)
 			panic("INITIAL PAGE LRU LISTs entry checking failed! Review size of the LRU lists!!\n*****IF CORRECT, CHECK THE ISSUE WITH THE STAFF*****");
@@ -53,8 +69,6 @@ void _main(void)
 		if( (sys_pf_calculate_allocated_pages() - usedDiskPages) !=  0) panic("Unexpected extra/less pages have been added to page file.. NOT Expected to add new pages to the page file");
 
 		uint32 freePagesAfter = (sys_calculate_free_frames() + sys_calculate_modified_frames());
-//cprintf("\n\there in tst_page_replacement_LRU_Lists_1.c \n freePages = %d, freePagesAfter = %d", freePages, freePagesAfter);
-//		cprintf(" %d %d", freePagesAfter, freePages);
 		if( (freePages - freePagesAfter) != 0 )
 			panic("Extra memory are wrongly allocated... It's REplacement: expected that no extra frames are allocated");
 	}
