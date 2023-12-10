@@ -555,7 +555,7 @@ void env_set_nice(struct Env* e, int nice_value)
 	//TODO: [PROJECT'23.MS3 - #3] [2] BSD SCHEDULER - env_set_nice
 	//Your code is here
 	//Comment the following line
-    panic("Not implemented yet");
+    //panic("Not implemented yet");
 	e->nice_value = nice_value;
 	e->priority = PRI_MAX - fix_trunc(e->recent_cpu) / 4 - nice_value * 2;
 }
