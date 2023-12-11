@@ -14,7 +14,7 @@ uint32 actual_second_list_init[5] = {0x202000, 0x201000, 0x200000, 0x802000, 0x2
 
 void _main(void)
 {
-//	cprintf("envID = %d\n",envID);
+	//	cprintf("envID = %d\n",envID);
 	int x = 0;
 
 	//("STEP 0: checking Initial WS entries ...\n");
@@ -46,9 +46,25 @@ void _main(void)
 	//===================
 
 	//("STEP 1: checking LRU LISTS after new page FAULTS...\n");
-	uint32 actual_active_list[6] = {0x803000, 0x801000, 0x800000, 0xeebfd000, 0x804000, 0x80c000};
-	uint32 actual_second_list[5] = {0x80b000, 0x80a000, 0x809000, 0x808000, 0x807000};
-
+	//uint32 actual_active_list[6] = {0x803000, 0x801000, 0x800000, 0xeebfd000, 0x804000, 0x80c000};
+	uint32 actual_active_list[6] ;
+	{
+		actual_active_list[0] = 0x803000;
+		actual_active_list[1] = 0x801000;
+		actual_active_list[2] = 0x800000;
+		actual_active_list[3] = 0xeebfd000;
+		actual_active_list[4] = 0x804000;
+		actual_active_list[5] = 0x80c000;
+	}
+	//uint32 actual_second_list[5] = {0x80b000, 0x80a000, 0x809000, 0x808000, 0x807000};
+	uint32 actual_second_list[5] ;
+	{
+		actual_second_list[0] = 0x80b000 ;
+		actual_second_list[1] = 0x80a000 ;
+		actual_second_list[2] = 0x809000 ;
+		actual_second_list[3] = 0x808000 ;
+		actual_second_list[4] = 0x807000 ;
+	}
 	int check = sys_check_LRU_lists(actual_active_list, actual_second_list, 6, 5);
 	if(check == 0)
 		panic("PAGE LRU Lists entry checking failed when new PAGE FAULTs occurred..!!");

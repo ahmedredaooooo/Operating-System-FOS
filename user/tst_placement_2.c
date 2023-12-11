@@ -12,7 +12,22 @@ void _main(void)
 
 	int8 arr[PAGE_SIZE*1024*4];
 
-	uint32 actual_active_list[13] = {0xedbfd000,0xeebfd000,0x803000,0x802000,0x801000,0x800000,0x205000,0x204000,0x203000,0x202000,0x201000,0x200000};
+	//uint32 actual_active_list[13] = {0xedbfd000,0xeebfd000,0x803000,0x802000,0x801000,0x800000,0x205000,0x204000,0x203000,0x202000,0x201000,0x200000};
+	uint32 actual_active_list[13] ;
+	{
+		actual_active_list[0] = 0xedbfd000;
+		actual_active_list[1] = 0xeebfd000;
+		actual_active_list[2] = 0x803000;
+		actual_active_list[3] = 0x802000;
+		actual_active_list[4] = 0x801000;
+		actual_active_list[5] = 0x800000;
+		actual_active_list[6] = 0x205000;
+		actual_active_list[7] = 0x204000;
+		actual_active_list[8] = 0x203000;
+		actual_active_list[9] = 0x202000;
+		actual_active_list[10] = 0x201000;
+		actual_active_list[11] = 0x200000;
+	}
 	uint32 actual_second_list[7] = {};
 	("STEP 0: checking Initial LRU lists entries ...\n");
 	{

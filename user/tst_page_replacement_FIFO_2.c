@@ -17,16 +17,45 @@ uint32 expectedInitialVAs[11] = {
 #define kilo 1024
 void _main(void)
 {
-	uint32 expectedMidVAs[11] = {
-			0xeebfd000, 																					//Stack
-			0x80a000, 0x80b000, 0x804000, 0x80c000,0x807000,0x808000,0x800000,0x801000,0x809000,0x803000,	//Code & Data
-	} ;
+	uint32 expectedMidVAs[11] ;
+	//	= {
+	//			0xeebfd000, 																					//Stack
+	//			0x80a000, 0x80b000, 0x804000, 0x80c000,0x807000,0x808000,0x800000,0x801000,0x809000,0x803000,	//Code & Data
+	//	} ;
 
-	uint32 expectedFinalVAs[11] = {
-			0x80b000,0x804000,0x80c000,0x800000,0x801000, //Code & Data
-			0xeebfd000, 					 //Stack
-			0x803000,0x805000,0x806000,0x807000,0x808000, //Data
-	} ;
+	{
+		expectedMidVAs[0] = 0xeebfd000;
+		expectedMidVAs[1] = 0x80a000;
+		expectedMidVAs[2] = 0x80b000;
+		expectedMidVAs[3] = 0x804000;
+		expectedMidVAs[4] = 0x80c000;
+		expectedMidVAs[5] = 0x807000;
+		expectedMidVAs[6] = 0x808000;
+		expectedMidVAs[7] = 0x800000;
+		expectedMidVAs[8] = 0x801000;
+		expectedMidVAs[9] = 0x809000;
+		expectedMidVAs[10] = 0x803000;
+	}
+//	uint32 expectedFinalVAs[11] = {
+//			0x80b000,0x804000,0x80c000,0x800000,0x801000, //Code & Data
+//			0xeebfd000, 					 //Stack
+//			0x803000,0x805000,0x806000,0x807000,0x808000, //Data
+//	} ;
+
+	uint32 expectedFinalVAs[11] ;
+	{
+		expectedFinalVAs[0] =  0x80b000;
+		expectedFinalVAs[1] =  0x804000;
+		expectedFinalVAs[2] =  0x80c000;
+		expectedFinalVAs[3] =  0x800000;
+		expectedFinalVAs[4] =  0x801000;
+		expectedFinalVAs[5] =  0xeebfd000;
+		expectedFinalVAs[6] =  0x803000;
+		expectedFinalVAs[7] =  0x805000;
+		expectedFinalVAs[8] =  0x806000;
+		expectedFinalVAs[9] =  0x807000;
+		expectedFinalVAs[10] =  0x808000;
+	}
 
 	char* tempArr = (char*)0x90000000;
 	uint32 tempArrSize = 5*PAGE_SIZE;

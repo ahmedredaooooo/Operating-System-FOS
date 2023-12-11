@@ -804,8 +804,9 @@ void initialize_environment(struct Env* e, uint32* ptr_user_page_directory, unsi
 	e->env_page_directory = ptr_user_page_directory;
 	e->env_cr3 = phys_user_page_directory;
 
+	e->is_page_filled = kmalloc(sizeof(int) *  (USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE);
 	///////////////////////////////OUR CODE UPDATE MS2//////////////////////////////////
-	for (int i = 0; i < (USER_HEAP_MAX - USER_HEAP_START)/ PAGE_SIZE ; i++)
+	for (int i = 0; i < (USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE; i++)
 		 e->is_page_filled[i] = 0;
 	///////////////////////////////////////////////////////////////////////////////////
 
