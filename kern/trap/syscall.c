@@ -272,7 +272,7 @@ uint32 sys_get_is_page_filled(uint32 idx)
 //MS3 CODE
 void sys_env_set_nice(uint32 nice_value)
 {
-    curenv->nice_value = (int)nice_value;
+//    curenv->nice_value = (int)nice_value;
 }
 //=====================================================================
 void sys_free_user_mem(uint32 virtual_address, uint32 size)

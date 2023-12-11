@@ -9,7 +9,7 @@
 #include <inc/memlayout.h>
 
 //MS3 Code
-#include <inc/fixed_point.h>
+//#include <inc/fixed_point.h>
 //=====================================================================
 
 // An environment ID 'envid_t' has three parts:
@@ -117,8 +117,8 @@ struct Env {
 	//==================================================================================
 
 	///////////////////////////MS3 CODE
-	int nice_value;
-	fixed_point_t recent_cpu;
+//	int nice_value;
+//	fixed_point_t recent_cpu;
 	///////////////////////////
 
 	//================
