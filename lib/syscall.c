@@ -370,3 +370,11 @@ uint32 sys_get_is_page_filled(uint32 idx)
 {
 	return syscall(SYS_get_is_page_filled, idx, 0, 0, 0, 0);
 }
+
+
+// MS3 code
+void sys_env_set_nice(uint32 nice_value)
+{
+    syscall(SYS_get_is_page_filled, nice_value, 0, 0, 0, 0);
+    return ;
+}
