@@ -30,7 +30,7 @@ void deallocate_unmap_chunck_of_pages(uint32 start, uint32 end)
 uint32 get_free_size(uint32 va)
 {
 	uint32 i = va;
-	for (; !is_page_filled[PDX(i)][PTX(i)] && i < KERNEL_HEAP_MAX; i += PAGE_SIZE);
+	for (; !is_page_filled[PDX(i)][PTX(i)]; i += PAGE_SIZE);
 	return i - va;
 }
 
