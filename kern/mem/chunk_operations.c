@@ -165,9 +165,11 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		e->is_page_filled[page_id] = 0;
 		pt_set_page_permissions(e->env_page_directory, va, 0, PERM_MARKED);
 		pf_remove_env_page(e, va);
-		env_page_ws_invalidate(e, va);
-		unmap_frame(e->env_page_directory, va);
+
+
+		fast_env_page_ws_invalidate(e, va);
 	}
+
 
 	// MS3 Code
 	while(e->page_last_WS_element && LIST_FIRST(&(e->page_WS_list))->virtual_address != e->page_last_WS_element->virtual_address)
@@ -175,7 +177,7 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		struct WorkingSetElement* first = LIST_FIRST(&(e->page_WS_list));
 		LIST_REMOVE(&(e->page_WS_list), first);
 		LIST_INSERT_TAIL(&(e->page_WS_list), first);
-		env_page_ws_print(e);
+		//env_page_ws_print(e);
 		////// if condition ya Ayman //////
 	}
 	if(LIST_SIZE(&(e->page_WS_list)) < size_before)
