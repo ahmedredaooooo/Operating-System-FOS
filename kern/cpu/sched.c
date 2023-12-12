@@ -77,6 +77,7 @@ fos_scheduler(void)
 	else if (scheduler_method == SCH_BSD)
 	{
 		next_env = fos_scheduler_BSD();
+		kclock_set_quantum(quantums[0]);
 	}
 	//temporarily set the curenv by the next env JUST for checking the scheduler
 	//Then: reset it again
@@ -166,8 +167,8 @@ void sched_init_BSD(uint8 numOfLevels, uint8 quantum)
 	//Your code is here
 	//Comment the following line
 	//panic("Not implemented yet");
-	num_of_ready_queues = numOfLevels;
 	sched_delete_ready_queues();
+	num_of_ready_queues = numOfLevels;
 	env_ready_queues = kmalloc(numOfLevels * sizeof(struct Env_Queue));
 	quantums = kmalloc(sizeof(uint8));
 
