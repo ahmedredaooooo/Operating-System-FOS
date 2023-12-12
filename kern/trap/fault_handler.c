@@ -18,10 +18,10 @@ void handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(struct Env *e, struc
 	struct WorkingSetElement* removedFromAL = LIST_LAST(&(curenv->ActiveList));
 	LIST_REMOVE(&(curenv->ActiveList), removedFromAL);
 	LIST_INSERT_HEAD(&(curenv->SecondList), removedFromAL);
-	pt_set_page_permissions(curenv->env_page_directory, removedFromAL->virtual_address, PERM_SECOND_LIST, PERM_PRESENT);
+	pt_set_page_permissions(curenv->env_page_directory, removedFromAL->virtual_address, 0, PERM_PRESENT);
 
 	LIST_INSERT_HEAD(&(curenv->ActiveList), WSE);
-	pt_set_page_permissions(curenv->env_page_directory, WSE->virtual_address, PERM_PRESENT, PERM_SECOND_LIST);
+	pt_set_page_permissions(curenv->env_page_directory, WSE->virtual_address, PERM_PRESENT, 0);
 }
 //=========================================
 
@@ -132,10 +132,9 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 
 			if(place_in_mem)
 			{
-				struct WorkingSetElement* WSE = env_page_ws_list_create_element(curenv, fault_va);
-				//ptr_frame_info->element = WSE;
 
-				//cprintf("\n\n fault_va = %x, wse = %x \n\n", fault_va, WSE);
+				struct WorkingSetElement* WSE = env_page_ws_list_create_element(curenv, fault_va);
+				ptr_frame_info->element = WSE;
 
 				LIST_INSERT_TAIL(&(curenv->page_WS_list), WSE);
 
@@ -166,10 +165,8 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 			if(perms & PERM_MODIFIED)
 				pf_update_env_page(curenv, removed_va, modified_page_frame_info);
 
-			//modified_page_frame_info->element = next; // O(1) purpose
-			fast_env_page_ws_invalidate(curenv, removed_va); // O(1) purpose
-			//env_page_ws_invalidate(curenv, removed_va);
-			//unmap_frame(curenv->env_page_directory, removed_va);
+			unmap_frame(curenv->env_page_directory, removed_va);
+			env_page_ws_invalidate(curenv, removed_va);
 
 			//placement code
 			fault_va = ROUNDDOWN(fault_va, PAGE_SIZE);
@@ -189,7 +186,7 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 			if(place_in_mem)
 			{
 				struct WorkingSetElement* WSE = env_page_ws_list_create_element(curenv, fault_va);
-				//ptr_frame_info->element = WSE;
+				ptr_frame_info->element = WSE;
 				if(is_last)
 					LIST_INSERT_TAIL(&(curenv->page_WS_list), WSE);
 				else
@@ -210,19 +207,13 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 		//TODO: [PROJECT'23.MS3 - BONUS] [1] PAGE FAULT HANDLER - O(1) implementation of LRU replacement
 
 		struct WorkingSetElement *WSE, *tmp;
-		uint32* ptr_page_table = NULL;
-		if (pt_get_page_permissions(curenv->env_page_directory, fault_va) & PERM_SECOND_LIST)
-		{
-			//env_page_ws_print(curenv);
-			tmp = get_frame_info(curenv->env_page_directory, fault_va, &ptr_page_table)->element;
-			LIST_REMOVE(&(curenv->SecondList), tmp);
-			return handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(curenv, tmp);
-		}
-//		LIST_FOREACH(tmp, &(curenv->SecondList))
-//			if (tmp->virtual_address == fault_va)
-//			{
-//
-//			}
+
+		LIST_FOREACH(tmp, &(curenv->SecondList))
+			if (tmp->virtual_address == fault_va)
+			{
+				LIST_REMOVE(&(curenv->SecondList), tmp);
+				return handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(curenv, tmp);
+			}
 
 		struct FrameInfo *ptr_frame_info;
 		allocate_frame(&ptr_frame_info);
@@ -238,7 +229,6 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 		uint8 ActiveListIsFull = LIST_SIZE(&(curenv->ActiveList)) == curenv->ActiveListSize,
 				SecondListIsFull = LIST_SIZE(&(curenv->SecondList)) == curenv->SecondListSize;
 		WSE = env_page_ws_list_create_element(curenv, fault_va);
-		//ptr_frame_info->element = WSE;
 		if (!ActiveListIsFull)
 		{
 			LIST_INSERT_HEAD(&(curenv->ActiveList), WSE);
@@ -247,16 +237,13 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 		if (!SecondListIsFull)
 			return handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(curenv, WSE);
 
-		ptr_page_table = NULL;
+		uint32 *ptr_page_table;
 		victimWSElement = LIST_LAST(&(curenv->SecondList));
-		struct FrameInfo* modified_page_frame_info = get_frame_info(curenv->env_page_directory, victimWSElement->virtual_address, &ptr_page_table);
 		if (pt_get_page_permissions(curenv->env_page_directory, victimWSElement->virtual_address) & PERM_MODIFIED)
-			pf_update_env_page(curenv, victimWSElement->virtual_address, modified_page_frame_info);
+			pf_update_env_page(curenv, victimWSElement->virtual_address, get_frame_info(curenv->env_page_directory, victimWSElement->virtual_address, &ptr_page_table));
 
-		//modified_page_frame_info->element = victimWSElement; // O(1) purpose
-		fast_env_page_ws_invalidate(curenv, victimWSElement->virtual_address); // O(1) purpose
-		//pt_set_page_permissions(curenv->env_page_directory, victimWSElement->virtual_address, PERM_PRESENT, PERM_SECOND_LIST);
-		//env_page_ws_invalidate(curenv, victimWSElement->virtual_address);
+		pt_set_page_permissions(curenv->env_page_directory, victimWSElement->virtual_address, PERM_PRESENT, 0);
+		env_page_ws_invalidate(curenv, victimWSElement->virtual_address);
 		handle_overflow_from_AL_to_SL_and_insert_new_WSE_in_AL(curenv, WSE);
 	}
 }

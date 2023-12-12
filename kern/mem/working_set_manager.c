@@ -21,59 +21,29 @@ inline struct WorkingSetElement* env_page_ws_list_create_element(struct Env* e, 
 	struct WorkingSetElement* WSE = kmalloc(sizeof(struct WorkingSetElement));
 	if (!WSE)
 		panic("Can't Create Object from WorkingSetElement using kmalloc() function");
-	WSE->virtual_address = ROUNDDOWN(virtual_address, PAGE_SIZE);
-	uint32* ptr_page_table = NULL;
-	get_frame_info(e->env_page_directory, WSE->virtual_address, &ptr_page_table)->element = WSE;
+	WSE->virtual_address = virtual_address;
 	return WSE;
 }
 
 //--------------------------------MS3 Code--------------------------------//
-inline void fast_env_page_ws_invalidate(struct Env *e, uint32 virtual_address)
-{
-	if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX))
-	{
-		int perm = pt_get_page_permissions(e->env_page_directory, virtual_address);
-		uint32* ptr_page_table = NULL;
-		struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
-
-		if (perm & PERM_PRESENT)
-		{
-			struct WorkingSetElement* ptr_tmp_WS_element = LIST_FIRST(&(e->SecondList));
-			unmap_frame(e->env_page_directory, wse->virtual_address);
-			LIST_REMOVE(&(e->ActiveList), wse);
-			kfree(wse);
-			if(ptr_tmp_WS_element != NULL)
-			{
-				LIST_REMOVE(&(e->SecondList), ptr_tmp_WS_element);
-				LIST_INSERT_TAIL(&(e->ActiveList), ptr_tmp_WS_element);
-				pt_set_page_permissions(e->env_page_directory, ptr_tmp_WS_element->virtual_address, PERM_PRESENT, PERM_SECOND_LIST);
-			}
-		}
-		else if (perm & PERM_SECOND_LIST)
-		{
-			pt_set_page_permissions(e->env_page_directory, wse->virtual_address, PERM_PRESENT, PERM_SECOND_LIST);
-			unmap_frame(e->env_page_directory, wse->virtual_address);
-			LIST_REMOVE(&(e->SecondList), wse);
-			kfree(wse);
-		}
-	}
-	else // if (isPageReplacmentAlgorithmFIFO())
-	{
-		if (pt_get_page_permissions(e->env_page_directory, virtual_address) & PERM_PRESENT)
-		{
-			uint32* ptr_page_table = NULL;
-			struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
-			if (e->page_last_WS_element == wse)
-			{
-				e->page_last_WS_element = LIST_NEXT(wse);
-			}
-			LIST_REMOVE(&(e->page_WS_list), wse);
-
-			kfree(wse);
-			unmap_frame(e->env_page_directory, virtual_address);
-		}
-	}
-}
+//inline void fast_env_page_ws_invalidate(struct Env *e, uint32 virtual_address)
+//{
+//	if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX))
+//	{
+//		if (pt_get_page_permissions(e->env_page_directory, virtual_address) & PERM_PRESENT)
+//		{
+//			uint32 *ptr_page_table;
+//			struct WorkingSetElement *WSE = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
+//
+//			LIST_REMOVE(&(e->page_WS_list), WSE);
+//			kfree(WSE);
+//	}
+//
+//	if (isPageReplacmentAlgorithmFIFO())
+//	{
+//
+//	}
+//}
 //==========================================================================
 inline void env_page_ws_invalidate(struct Env* e, uint32 virtual_address)
 {

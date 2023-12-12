@@ -307,8 +307,10 @@ void trap(struct Trapframe *tf)
 /*2022*/
 uint32 last_fault_va = 0;
 int8 num_repeated_fault  = 0;
+struct Env *last_faulted_env = NULL;
 void fault_handler(struct Trapframe *tf)
 {
+//	cprintf("\ntrap.c \t sz = %d, sz = 0x%x", sizeof(struct Env), sizeof(struct Env));///////dalete
 	int userTrap = 0;
 	if ((tf->tf_cs & 3) == 3) {
 		userTrap = 1;
@@ -323,7 +325,8 @@ void fault_handler(struct Trapframe *tf)
 
 	/******************************************************/
 	/*2022*///If same fault va for 3 times, then panic
-	if (last_fault_va == fault_va)
+	/*2023*///UPDATE 3 FAULTS MUST come from the same enviroment (or the kernel)
+	if (last_fault_va == fault_va && last_faulted_env == curenv)
 	{
 		num_repeated_fault++ ;
 		if (num_repeated_fault == 3)
@@ -337,6 +340,7 @@ void fault_handler(struct Trapframe *tf)
 		num_repeated_fault = 0;
 	}
 	last_fault_va = fault_va ;
+	last_faulted_env = curenv;
 	/******************************************************/
 	//2017: Check stack overflow for Kernel
 	if (!userTrap)
@@ -380,13 +384,21 @@ void fault_handler(struct Trapframe *tf)
 			//your code is here
 			int perms = pt_get_page_permissions(faulted_env->env_page_directory, fault_va);
 
-			if((perms & PERM_PRESENT) && (!(perms & PERM_WRITEABLE) || !(perms & PERM_USER) || !(perms &PERM_MARKED )))
-			{
-				/*
-				cprintf("%d %d %d %d \n\n", perms&PERM_PRESENT, perms&PERM_WRITEABLE, perms&PERM_USER, perms&PERM_MARKED);
-				*/
+			bool pointing_to_unmarked_page_in_user_heap = (!(perms &PERM_MARKED) && fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX);
+			bool pointing_to_kernal = fault_va >= USER_LIMIT;
+			bool exist_but_with_read_only_permissions = (perms & PERM_PRESENT) && !(perms & PERM_WRITEABLE);
+//			cprintf("\ntrap.c \t sz = %d, sz = 0x%x\n", sizeof(struct Env), sizeof(struct Env));///////dalete
+			if (pointing_to_unmarked_page_in_user_heap || pointing_to_kernal || exist_but_with_read_only_permissions)
 				sched_kill_env(curenv->env_id);
-			}
+
+
+//			if((perms & PERM_PRESENT) && (!(perms & PERM_WRITEABLE) || !(perms & PERM_USER) || !(perms &PERM_MARKED )))
+//			{
+//				/*
+//				cprintf("%d %d %d %d \n\n", perms&PERM_PRESENT, perms&PERM_WRITEABLE, perms&PERM_USER, perms&PERM_MARKED);
+//				*/
+//				sched_kill_env(curenv->env_id);
+//			}
 
 			/*============================================================================================*/
 		}
