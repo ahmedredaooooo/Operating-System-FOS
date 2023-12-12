@@ -158,6 +158,7 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 	//panic("free_user_mem() is not implemented yet...!!");
 	//TODO: [PROJECT'23.MS2 - BONUS#2] [2] USER HEAP - free_user_mem() IN O(1): removing page from WS List instead of searching the entire list
 
+	uint32 size_before = LIST_SIZE(&(e->page_WS_list));
 	for (uint32 va = virtual_address, end = va + size; va < end; va += PAGE_SIZE)
 	{
 		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
@@ -177,7 +178,8 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		//env_page_ws_print(e);
 		////// if condition ya Ayman //////
 	}
-	e->page_last_WS_element = NULL;
+	if(LIST_SIZE(&(e->page_WS_list)) < size_before)
+		e->page_last_WS_element = NULL;
 }
 
 //=====================================

@@ -69,7 +69,7 @@
 #define PERM_BUFFERED 0x200 //Page it buffered
 // our codeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 #define PERM_SECOND_LIST 0x400
-#define PERM_MARKED 0x800
+#define PERM_MARKED 0x800 
 
 ///////////////////////
 // The PERM_AVAILABLE bits aren't used by the kernel or interpreted by the

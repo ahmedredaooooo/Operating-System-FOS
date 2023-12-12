@@ -28,13 +28,13 @@ inline struct WorkingSetElement* env_page_ws_list_create_element(struct Env* e, 
 }
 
 //--------------------------------MS3 Code--------------------------------//
-inline void fast_env_page_ws_invalidate(struct Env *e, uint32 virtual_address)
+inline void fast_env_page_ws_invalidate(struct Env* e, uint32 virtual_address)
 {
 	if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX))
 	{
 		int perm = pt_get_page_permissions(e->env_page_directory, virtual_address);
 		uint32* ptr_page_table = NULL;
-		struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
+		struct WorkingSetElement* wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
 
 		if (perm & PERM_PRESENT)
 		{
@@ -42,7 +42,7 @@ inline void fast_env_page_ws_invalidate(struct Env *e, uint32 virtual_address)
 			unmap_frame(e->env_page_directory, wse->virtual_address);
 			LIST_REMOVE(&(e->ActiveList), wse);
 			kfree(wse);
-			if(ptr_tmp_WS_element != NULL)
+			if (ptr_tmp_WS_element != NULL)
 			{
 				LIST_REMOVE(&(e->SecondList), ptr_tmp_WS_element);
 				LIST_INSERT_TAIL(&(e->ActiveList), ptr_tmp_WS_element);
@@ -62,7 +62,7 @@ inline void fast_env_page_ws_invalidate(struct Env *e, uint32 virtual_address)
 		if (pt_get_page_permissions(e->env_page_directory, virtual_address) & PERM_PRESENT)
 		{
 			uint32* ptr_page_table = NULL;
-			struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
+			struct WorkingSetElement* wse = get_frame_info(e->env_page_directory, virtual_address, &ptr_page_table)->element;
 			if (e->page_last_WS_element == wse)
 			{
 				e->page_last_WS_element = LIST_NEXT(wse);
