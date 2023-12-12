@@ -165,20 +165,8 @@ void sched_init_BSD(uint8 numOfLevels, uint8 quantum)
 	//TODO: [PROJECT'23.MS3 - #4] [2] BSD SCHEDULER - sched_init_BSD
 	//Your code is here
 	//Comment the following line
-	//panic("Not implemented yet");
-	num_of_ready_queues = numOfLevels;
-	sched_delete_ready_queues();
-	env_ready_queues = kmalloc(numOfLevels * sizeof(struct Env_Queue));
-	quantums = kmalloc(sizeof(uint8));
+	panic("Not implemented yet");
 
-
-	quantums[0] = quantum;
-	kclock_set_quantum(quantums[0]);
-	for(int i = 0; i < numOfLevels; i++)
-		init_queue(&(env_ready_queues[i]));
-
-	load_avg = fix_int(0);
-	num_of_ready_process = 0;
 	//=========================================
 	//DON'T CHANGE THESE LINES=================
 	scheduler_status = SCH_STOPPED;
@@ -206,17 +194,7 @@ struct Env* fos_scheduler_BSD()
 	//TODO: [PROJECT'23.MS3 - #5] [2] BSD SCHEDULER - fos_scheduler_BSD
 	//Your code is here
 	//Comment the following line
-	//panic("Not implemented yet");
-	//return NULL;
-	if (curenv != NULL)// we shouldn't update priority because it is already updated fos_scheduler()
-		enqueue(&(env_ready_queues[ PRI_MAX - curenv->priority]), curenv);
-
-	for(int i = 0; i < num_of_ready_queues; i++)
-	{
-		if(queue_size(&env_ready_queues[i]))
-			return dequeue(&env_ready_queues[i]);
-		//sched_print_all();
-	}
+	panic("Not implemented yet");
 	return NULL;
 }
 
@@ -229,128 +207,10 @@ void clock_interrupt_handler()
 	//TODO: [PROJECT'23.MS3 - #5] [2] BSD SCHEDULER - Your code is here
 	{
 
+
+
 	}
 
-	if (scheduler_method == SCH_BSD)
-	{
-		//struct Env* currEnv = dequeue(&env_ready_queues[curenv->priority]);//el env
-
-		//second t3del hwa 2al increment by 1
-
-		curenv->recent_cpu = fix_add(curenv->recent_cpu, fix_int(1));
-
-		// first t3del
-		if(!(ticks%4))//every 4th tick
-		{
-			fixed_point_t nice2 = fix_int(2*curenv->nice_value);
-			fixed_point_t recent4 = fix_div(curenv->recent_cpu, fix_int(4));
-			fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
-			fixed_point_t second_minus = fix_sub(first_minus, nice2);
-			curenv->priority = fix_trunc(second_minus);
-			if(curenv->priority > PRI_MAX)
-				curenv->priority = PRI_MAX;
-			else if(curenv->priority < PRI_MIN)
-				curenv->priority = PRI_MIN;
-		}
-
-
-		//load_avg = 59/60 *load_avg + 1/6 *num_of_ready_process;
-		//curenv->recent_cpu =
-		//curenv->priority = PRI_MAX - fix_trunc(curenv->recent_	cpu) / 4 - curenv->nice_value * 2;//what?
-		//sched_remove_new
-		//clock_interrupt_handler()
-		num_of_ready_process = 0;
-		if( (((ticks+1)%1000)*quantums[0])%1000 < ((ticks%1000)*quantums[0])%1000)
-		{
-			for(int i = 0;i < num_of_ready_queues; i++ )
-				num_of_ready_process += queue_size(&env_ready_queues[i]);
-
-			if(curenv!=NULL)
-				num_of_ready_process++;
-
-			fixed_point_t fraction59 = fix_div(fix_int(59), fix_int(60));
-			fixed_point_t old_load   = fix_mul(fraction59, load_avg);
-			fixed_point_t fraction1  = fix_div(fix_int(1), fix_int(60));
-			fixed_point_t t_num_of_ready_process = fix_mul(fraction1, fix_int(num_of_ready_process));
-			load_avg = fix_add(old_load, t_num_of_ready_process);
-
-			for(int i = 0;i < num_of_ready_queues; i++ )
-			{
-				struct Env *ptr = NULL;
-				LIST_FOREACH(ptr,&env_ready_queues[i])
-				{
-					fixed_point_t load_avg_2 = fix_mul(load_avg, fix_int(2));
-					fixed_point_t load_avg_2_plus_1 = fix_add(load_avg_2, fix_int(1));
-					fixed_point_t load_avg_fraction = fix_div(load_avg_2, load_avg_2_plus_1);
-					fixed_point_t old_recent_cpu = ptr->recent_cpu;
-					fixed_point_t t_recent_cpu = fix_mul(load_avg_fraction, old_recent_cpu);
-					fixed_point_t t_nice = fix_int(ptr->nice_value);
-					t_recent_cpu = fix_add(t_recent_cpu, t_nice);
-					ptr->recent_cpu = (t_recent_cpu);
-
-					fixed_point_t recent_cpu_div_4 = fix_div(ptr->recent_cpu, fix_int(4));
-					fixed_point_t nice_2 = fix_mul(fix_int(ptr->nice_value), fix_int(2));
-					fixed_point_t t_priority = fix_sub(fix_int(PRI_MAX), recent_cpu_div_4);
-					t_priority = fix_sub(t_priority, nice_2);
-
-					if(fix_trunc(t_priority) > PRI_MAX)
-						ptr->priority = PRI_MAX;
-					else if(fix_trunc(t_priority) < PRI_MIN)
-						ptr->priority = PRI_MIN;
-					else
-						ptr->priority = fix_trunc(t_priority);
-
-				}
-			}
-			if(curenv!=NULL)
-			{
-				fixed_point_t load_avg_2 = fix_mul(load_avg, fix_int(2));
-				fixed_point_t load_avg_2_plus_1 = fix_add(load_avg_2, fix_int(1));
-				fixed_point_t load_avg_fraction = fix_div(load_avg_2, load_avg_2_plus_1);
-				fixed_point_t old_recent_cpu = curenv->recent_cpu;
-				fixed_point_t t_recent_cpu = fix_mul(load_avg_fraction, old_recent_cpu);
-				fixed_point_t t_nice = fix_int(curenv->nice_value);
-				t_recent_cpu = fix_add(t_recent_cpu, t_nice);
-				curenv->recent_cpu = (t_recent_cpu);
-
-				fixed_point_t recent_cpu_div_4 = fix_div(curenv->recent_cpu, fix_int(4));
-				fixed_point_t nice_2 = fix_mul(fix_int(curenv->nice_value), fix_int(2));
-				fixed_point_t t_priority = fix_sub(fix_int(PRI_MAX), recent_cpu_div_4);
-				t_priority = fix_sub(t_priority, nice_2);
-
-
-				if(fix_trunc(t_priority) > PRI_MAX)
-					curenv->priority = PRI_MAX;
-				else if(fix_trunc(t_priority) < PRI_MIN)
-					curenv->priority = PRI_MIN;
-				else
-					curenv->priority = fix_trunc(t_priority);
-			}
-
-			for(int i = 0;i < num_of_ready_queues; i++ )
-			{
-				struct Env *ptr = LIST_LAST(&env_ready_queues[i]),*ptr2 = NULL;
-				while(ptr != NULL)
-				{
-					if(PRI_MAX - ptr->priority != i)
-					{
-						int queue_idx = PRI_MAX - ptr->priority; ///when pr = 63(max) -> this is queue [0]
-						enqueue(&env_ready_queues[queue_idx], ptr);
-						ptr2 = ptr->prev_next_info.le_prev;
-						remove_from_queue(&env_ready_queues[queue_idx],ptr);
-						ptr = ptr2;
-					}
-				}
-			}
-
-		}
-
-
-		int queue_idx = PRI_MAX - curenv->priority; ///when pr = 63(max) -> this is queue [0]
-		//enqueue(&env_ready_queues[queue_idx], currEnv);
-
-		kclock_set_quantum(quantums[0]);
-	}
 
 	/********DON'T CHANGE THIS LINE***********/
 	ticks++ ;
