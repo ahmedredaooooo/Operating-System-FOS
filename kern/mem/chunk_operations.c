@@ -158,7 +158,6 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 	//panic("free_user_mem() is not implemented yet...!!");
 	//TODO: [PROJECT'23.MS2 - BONUS#2] [2] USER HEAP - free_user_mem() IN O(1): removing page from WS List instead of searching the entire list
 
-	uint32 size_before = LIST_SIZE(&(e->page_WS_list));
 	for (uint32 va = virtual_address, end = va + size; va < end; va += PAGE_SIZE)
 	{
 		int page_id = (va - USER_HEAP_START) / PAGE_SIZE;
@@ -169,6 +168,20 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		unmap_frame(e->env_page_directory, va);
 	}
 
+//	    O(1) deletion of working set element
+//		if (pt_get_page_permissions(e->env_page_directory, va) & PERM_PRESENT)
+//		{
+//			uint32* ptr_page_table = NULL;
+//			struct WorkingSetElement *wse = get_frame_info(e->env_page_directory, va, &ptr_page_table)->element;
+//			if (e->page_last_WS_element == wse)
+//			{
+//				e->page_last_WS_element = LIST_NEXT(wse);
+//			}
+//			LIST_REMOVE(&(e->page_WS_list), wse);
+//
+//			kfree(wse);
+//		}
+
 	// MS3 Code
 	while(e->page_last_WS_element && LIST_FIRST(&(e->page_WS_list))->virtual_address != e->page_last_WS_element->virtual_address)
 	{
@@ -178,8 +191,7 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		env_page_ws_print(e);
 		////// if condition ya Ayman //////
 	}
-	if(LIST_SIZE(&(e->page_WS_list)) < size_before)
-		e->page_last_WS_element = NULL;
+	e->page_last_WS_element = NULL;
 }
 
 //=====================================
