@@ -28,7 +28,7 @@ uint32 get_free_size(uint32 va)
 	//initialize_environment();
 	//cprintf("\n\n\n%day7aga\n\n\n", eis_page_filled[0]);
 	uint32 i = va;
-	for (; !sys_get_is_page_filled((i - USER_HEAP_START) / PAGE_SIZE); i += PAGE_SIZE);
+	for (; !sys_get_is_page_filled((i - USER_HEAP_START) / PAGE_SIZE) && i < USER_HEAP_MAX; i += PAGE_SIZE);
 	return i - va;
 }
 
@@ -67,9 +67,10 @@ void* malloc(uint32 size)
 		int coming_free = get_free_size(va);
 		if (coming_free)
 			if (coming_free >= size)
-				return sys_allocate_user_mem(va, size), (void*)va;
+				return sys_allocate_user_mem(va, size), (void *)va;
 			else
 				va += coming_free;
+
 		else
 			va += sys_get_is_page_filled(page_id);
 	}
