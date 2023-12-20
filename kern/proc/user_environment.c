@@ -388,7 +388,7 @@ struct Env* env_create(char* user_program_name, unsigned int page_WS_size, unsig
 		LIST_FOREACH(elm, &(e->SecondList))
 		{
 			//set it's PRESENT bit to 0
-			pt_set_page_permissions(e->env_page_directory, elm->virtual_address, 0, PERM_PRESENT);
+			pt_set_page_permissions(e->env_page_directory, elm->virtual_address, PERM_SECOND_LIST, PERM_PRESENT);
 		}
 	}
 
@@ -804,8 +804,8 @@ void initialize_environment(struct Env* e, uint32* ptr_user_page_directory, unsi
 	e->env_page_directory = ptr_user_page_directory;
 	e->env_cr3 = phys_user_page_directory;
 
-	e->is_page_filled = kmalloc(sizeof(int) *  (USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE);
 	///////////////////////////////OUR CODE UPDATE MS2//////////////////////////////////
+	e->is_page_filled = kmalloc(sizeof(int) *  (USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE);
 	for (int i = 0; i < (USER_HEAP_MAX - USER_HEAP_START) / PAGE_SIZE; i++)
 		 e->is_page_filled[i] = 0;
 	///////////////////////////////////////////////////////////////////////////////////

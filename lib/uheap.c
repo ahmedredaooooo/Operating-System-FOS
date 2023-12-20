@@ -67,10 +67,9 @@ void* malloc(uint32 size)
 		int coming_free = get_free_size(va);
 		if (coming_free)
 			if (coming_free >= size)
-				return sys_allocate_user_mem(va, size), (void *)va;
+				return sys_allocate_user_mem(va, size), (void*)va;
 			else
 				va += coming_free;
-
 		else
 			va += sys_get_is_page_filled(page_id);
 	}
