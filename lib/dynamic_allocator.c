@@ -300,7 +300,7 @@ void free_block(void *va)
 
 
 	struct BlockMetaData* next_free = LIST_NEXT(removedBlock), *prev_free = LIST_PREV(removedBlock);
-	if(next_free && removedBlock + removedBlock->size == next_free)
+	if(next_free && (uint32)removedBlock + removedBlock->size == (uint32)next_free)
 	{
 		removedBlock->size+=LIST_NEXT(removedBlock)->size;
 		LIST_NEXT(removedBlock)->size=0;
@@ -308,7 +308,7 @@ void free_block(void *va)
 		struct BlockMetaData *x=LIST_NEXT(removedBlock);
 		LIST_REMOVE(&free_mem_block_list,x);
 	}
-	if(prev_free && prev_free + prev_free->size == removedBlock)
+	if(prev_free && (uint32)prev_free + prev_free->size == (uint32)removedBlock)
 	{
 		LIST_PREV(removedBlock)->is_free=1;
 		LIST_PREV(removedBlock)->size+=removedBlock->size;
@@ -333,20 +333,36 @@ void *realloc_block_FF(void* va, uint32 new_size)
 	if (!new_size)
 		return free_block(va), NULL;
 
-	struct BlockMetaData* cur = (struct BlockMetaData*) va - 1;
+	struct BlockMetaData* cur = (struct BlockMetaData*) va - 1,* ptr = NULL;
 	cur->is_free = 1;
+
+	LIST_FOREACH(ptr, &free_mem_block_list)
+		if (ptr > cur)
+			break;
+	if (!ptr)
+		LIST_INSERT_TAIL(&free_mem_block_list, cur);
+	else
+		LIST_INSERT_BEFORE(&free_mem_block_list, ptr, cur);
 
 	// IF THE FOLLOWING META-BLOCK EMPTY
 	// THEN free_block(NEXT(CURRENT))
-	struct BlockMetaData* next = cur + cur->size;
-	if (next && next->is_free)
+	struct BlockMetaData* next = LIST_NEXT(cur);
+	if (next && (uint32)cur + cur->size == (uint32)next)
+	{
+		next->is_free = 0;
+		LIST_REMOVE(&free_mem_block_list, next);
 		free_block(next + 1);
+	}
 
 	// CHECK SIZE OF META-BLOCK @ (va) IF ENOUGH
 	// THEN alloc_block_at(va, new_size)
 	// ELSE THEN alloc_block_FF(new_size)
 	void* ret = alloc_block_at(va, new_size);
 	if (!ret)
+	{
+		cur->is_free = 0;
+		LIST_REMOVE(&free_mem_block_list, cur);
 		return free_block(cur + 1), alloc_block_FF(new_size);
+	}
 	return ret;
 }
