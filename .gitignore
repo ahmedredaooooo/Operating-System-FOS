@@ -1,4 +1,4 @@
 obj/
 *.log
-.vs/
+.vs/*
 

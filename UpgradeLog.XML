@@ -1,28 +1,17 @@
-/* See COPYRIGHT for copyright information. */
-
-#ifndef _CONSOLE_H_
-#define _CONSOLE_H_
-#ifndef FOS_KERNEL
-# error "This is a FOS kernel header; user programs should not #include it"
-#endif
-
-#include <inc/types.h>
-
-#define MONO_BASE	0x3B4
-#define MONO_BUF	0xB0000
-#define CGA_BASE	0x3D4
-#define CGA_BUF		0xB8000
-
-#define CRT_ROWS	25
-#define CRT_COLS	80
-#define CRT_SIZE	(CRT_ROWS * CRT_COLS)
-
-void console_initialize(void);
-void cons_putc(int c);
-int cons_getc(void);
-int cons_getc2(void);
-
-void kbd_intr(void); // irq 1
-void serial_intr(void); // irq 4
-
-#endif /* _CONSOLE_H_ */
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="fos">
+</Property><Property Name="Solution File" Value="F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.sln">
+</Property><Property Name="User Options File" Value="F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.suo">
+</Property><Property Name="Date" Value="Sunday, April 08, 2012">
+</Property><Property Name="Time" Value="21:02 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="fos.sln" Description="File successfully backed up as F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="fos.suo" Description="File successfully backed up as F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.suo.old">
+</Event><Event ErrorLevel="0" Project="fos" Source="fos.vcproj" Description="Converting project file 'F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.vcproj'.">
+</Event><Event ErrorLevel="1" Project="fos" Source="fos.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="fos" Source="fos.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="fos" Source="fos.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="0" Project="fos" Source="fos.vcproj" Description="Done converting to new project file 'F:\COURSES\OS 2011\[OS'11] PROJECT MATERIALS\FOS_PROJECT_2011_TA_final_after_correction_free_mem\FOS_PROJECT_2011_TA_final\fos.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="fos" Source="fos.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="fos.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="fos.sln" Description="Converted">
+</Event></UpgradeLog>
