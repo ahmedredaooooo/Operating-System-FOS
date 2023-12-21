@@ -334,6 +334,7 @@ void *realloc_block_FF(void* va, uint32 new_size)
 		return free_block(va), NULL;
 
 	struct BlockMetaData* cur = (struct BlockMetaData*) va - 1,* ptr = NULL;
+	uint32 old_size = cur->size - sizeOfMetaData();
 	cur->is_free = 1;
 
 	LIST_FOREACH(ptr, &free_mem_block_list)
@@ -358,11 +359,29 @@ void *realloc_block_FF(void* va, uint32 new_size)
 	// THEN alloc_block_at(va, new_size)
 	// ELSE THEN alloc_block_FF(new_size)
 	void* ret = alloc_block_at(va, new_size);
+	if (ret)
+		return ret;
+
+	// may be prev is free so try to merge
+	ptr = LIST_PREV(cur);
+	cur->is_free = 0;
+	LIST_REMOVE(&free_mem_block_list, cur);
+	free_block(cur + 1);
+
+	ret = alloc_block_FF(new_size);
+	// if allocff can't alloc this size may be can't move sbrk or we reached hard_limit
+	// then act as if it's not been called
 	if (!ret)
 	{
-		cur->is_free = 0;
-		LIST_REMOVE(&free_mem_block_list, cur);
-		return free_block(cur + 1), alloc_block_FF(new_size);
+		// if the prev block was free then it's merged,
+		// we have to undo this merge again by editting the size
+		struct BlockMetaData* last_free = ptr;
+		if ((uint32)last_free + last_free->size > (uint32)cur)
+			last_free->size = cur - last_free;
+
+		return alloc_block_at(va, old_size);
 	}
+	// copy prog to new address
+	memcpy(ret, va, old_size);
 	return ret;
 }
