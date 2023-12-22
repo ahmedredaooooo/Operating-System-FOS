@@ -301,36 +301,74 @@ void *krealloc(void *virtual_address, uint32 new_size)
 	//panic("krealloc() is not implemented yet...!!");
 
 	if (!virtual_address)
-			return kmalloc(new_size);
+		return kmalloc(new_size);
 
-		if (!new_size)
-			return kfree(virtual_address), NULL;
+	if (!new_size)
+		return kfree(virtual_address), NULL; // ? what should be returned
 
-		uint8 is_BA_VA = (uint32)virtual_address >= start && (uint32)virtual_address < segment_break, is_small = new_size <= DYN_ALLOC_MAX_BLOCK_SIZE;
-		if (is_BA_VA ^ is_small)
+	uint8 is_BA_VA = (uint32)virtual_address >= start && (uint32)virtual_address < segment_break, is_small = new_size <= DYN_ALLOC_MAX_BLOCK_SIZE;
+	if (!is_small)
+		new_size = ROUNDUP(new_size, PAGE_SIZE);
+
+	if (is_BA_VA ^ is_small)
+	{
+		void* ret = kmalloc(new_size);
+		if (ret)
 		{
-			void* ret = kmalloc(new_size);
-			if (ret)
-				kfree(virtual_address);
-			return ret;
-		}
-		if (is_BA_VA)
-			return realloc_block_FF(virtual_address, new_size);
-
-
-		uint32 prog_size = is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size((uint32)virtual_address + prog_size);
-
-		if (new_size <= init_va_size)
-		{
+			// move content to new location
+			uint32 sz = -1;
+			if (is_BA_VA)
+				sz = get_block_size(virtual_address);
+			memcpy(ret, virtual_address, MIN(sz - sizeOfMetaData(), new_size));
 			kfree(virtual_address);
-			allocate_map_chunck_of_pages((uint32) virtual_address, (uint32) virtual_address + new_size, PAGE_ALLOCATOR);
-			return virtual_address;
+			return ret; //
 		}
-		else
+		return virtual_address; // ? may be same virtual_address
+	}
+	if (is_BA_VA)
+		return realloc_block_FF(virtual_address, new_size); // ? may be same virtual_address
+
+
+	uint32 prog_size = is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size((uint32)virtual_address + prog_size);
+
+	// can be allocated in same place
+	if (new_size <= init_va_size)
+	{
+		void* start = virtual_address + MIN(prog_size, new_size),* end = virtual_address + MAX(prog_size, new_size);
+		// add some
+		if (new_size > prog_size)
+			for (void* va = start; va < end; va += PAGE_SIZE)
+			{
+				is_page_filled[PDX(va)][PTX(va)] = (int)virtual_address;
+				struct FrameInfo* ptr_frame_info = NULL;
+				allocate_frame(&ptr_frame_info);
+				map_frame(ptr_page_directory, ptr_frame_info,(uint32) va, PERM_WRITEABLE);
+			}
+		// remove extra
+		else if (new_size < prog_size)
+			for (void* va = start; va < end; va += PAGE_SIZE)
+			{
+				is_page_filled[PDX(va)][PTX(va)] = 0;
+				unmap_frame(ptr_page_directory,(uint32) va);
+			}
+		is_page_filled[PDX(virtual_address)][PTX(virtual_address)] = new_size;
+		return virtual_address; // ? may be same virtual_address
+	}
+	else
+	{
+		void* ret = kmalloc(new_size);
+		if (ret)
 		{
-			void* ret = kmalloc(new_size);
-			if (ret)
-				kfree(virtual_address);
+			// move content to new location
+			for (void* src = virtual_address, *dst = ret; src < virtual_address + prog_size; src += PAGE_SIZE, dst += PAGE_SIZE)
+			{
+				uint32* ptr_page_table = NULL;
+				struct FrameInfo* ptr_frame_info = get_frame_info(ptr_page_directory,(uint32) src, &ptr_page_table);
+				map_frame(ptr_page_directory, ptr_frame_info, (uint32)dst, ptr_page_table[PTX(src)] & 0xFFF);
+			}
+			kfree(virtual_address);
 			return ret;
 		}
+		return virtual_address; // ? may be same virtual_address
+	}
 }
