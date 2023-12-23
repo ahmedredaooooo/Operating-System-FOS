@@ -597,11 +597,11 @@ int update_priority(struct Env* e)
 
 	fixed_point_t nice2 = fix_int(2 * e->nice_value);
 	fixed_point_t recent4 = fix_div(e->recent_cpu, fix_int(4));
-	fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
+	fixed_point_t first_minus = fix_sub(fix_int(num_of_ready_queues - 1), recent4);
 	fixed_point_t second_minus = fix_sub(first_minus, nice2);
 	e->priority = fix_trunc(second_minus);
-	if(e->priority > PRI_MAX)
-		e->priority = PRI_MAX;
+	if(e->priority > num_of_ready_queues - 1)
+		e->priority = num_of_ready_queues - 1;
 	else if(e->priority < PRI_MIN)
 		e->priority = PRI_MIN;
 	return e->priority;
