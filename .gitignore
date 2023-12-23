@@ -1,2 +1,4 @@
 obj/
-bochs.log
+*.log
+.vs/*
+

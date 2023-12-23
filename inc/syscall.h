@@ -1,8 +1,11 @@
 #ifndef FOS_INC_SYSCALL_H
 #define FOS_INC_SYSCALL_H
 
+// MS2
 unsigned int sys_get_hard_limit();
 unsigned int sys_get_is_page_filled();
+//============================
+
 /* system call numbers */
 enum
 {
@@ -63,6 +66,10 @@ enum
 	// MS2 our Code
 	SYS_get_hard_limit,
 	SYS_get_is_page_filled,
+	//=====================================================================
+
+	// MS3 our Code
+	SYS_env_set_nice,
 	//=====================================================================
 
 	NSYSCALLS

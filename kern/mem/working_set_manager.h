@@ -10,6 +10,10 @@
 
 #include <inc/environment_definitions.h>
 
+//--------------------------------MS3 Code--------------------------------//
+inline void fast_env_page_ws_invalidate(struct Env *, uint32);
+//===================================================
+
 // Page WS helper functions ===================================================
 void env_page_ws_print(struct Env *curenv);
 inline void env_page_ws_invalidate(struct Env* e, uint32 virtual_address);

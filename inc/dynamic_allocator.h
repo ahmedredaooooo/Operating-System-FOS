@@ -20,7 +20,7 @@ enum
 
 LIST_HEAD(MemBlock_LIST, BlockMetaData);
 
-struct MemBlock_LIST mem_block_list;
+struct MemBlock_LIST free_mem_block_list;
 
 struct BlockMetaData
 {

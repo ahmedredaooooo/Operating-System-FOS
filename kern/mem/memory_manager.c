@@ -387,9 +387,10 @@ int map_frame(uint32 *ptr_page_directory, struct FrameInfo *ptr_frame_info, uint
 			unmap_frame(ptr_page_directory , virtual_address);
 	}
 	ptr_frame_info->references++;
-	////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
-	ptr_frame_info->va = virtual_address;                ///////////////////Mtsnsaaaaaaaaaaaaaaaaaaaaaaaaaa44444444444444
-	////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
+   ptr_frame_info->va = virtual_address;                ///////////////////Mtsnsaaaaaaaaaaaaaaaaaaaaaaaaaa44444444444444
+   ////////////////////////////////////////////////////////OUR EDIT/////////////////////////////////////////////////////
+
 
 	/*********************************************************************************/
 	/*NEW'23 el7:)
@@ -422,7 +423,9 @@ struct FrameInfo * get_frame_info(uint32 *ptr_page_directory, uint32 virtual_add
 		uint32 index_page_table = PTX(virtual_address);
 		//cprintf(".gfi .2\n");
 		uint32 page_table_entry = (*ptr_page_table)[index_page_table];
-		if( page_table_entry != 0)
+		/*2023 el7:)*///Make sure it has a frame number other than 0 (not just a marked page from the page allocator)
+		//if( page_table_entry != 0)
+		if( (page_table_entry & ~0xFFF) != 0)
 		{
 			//cprintf(".gfi .3\n");
 			return to_frame_info( EXTRACT_ADDRESS ( page_table_entry ) );
@@ -451,7 +454,7 @@ void unmap_frame(uint32 *ptr_page_directory, uint32 virtual_address)
 	// Fill this function in
 	uint32 *ptr_page_table;
 	struct FrameInfo* ptr_frame_info = get_frame_info(ptr_page_directory, virtual_address, &ptr_page_table);
-	if( ptr_frame_info != 0 && (pt_get_page_permissions(ptr_page_directory, virtual_address) & PERM_PRESENT))
+	if (ptr_frame_info != 0 && (pt_get_page_permissions(ptr_page_directory, virtual_address) & PERM_PRESENT))
 	{
 		if (ptr_frame_info->isBuffered && !CHECK_IF_KERNEL_ADDRESS((uint32)virtual_address))
 			cprintf("WARNING: Freeing BUFFERED frame at va %x!!!\n", virtual_address) ;

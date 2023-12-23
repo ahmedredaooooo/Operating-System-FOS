@@ -269,6 +269,13 @@ uint32 sys_get_is_page_filled(uint32 idx)
 }
 //=====================================================================
 
+//MS3 CODE
+void sys_env_set_nice(uint32 nice_value)
+{
+    curenv->nice_value = (int)nice_value;
+}
+//=====================================================================
+
 void sys_free_user_mem(uint32 virtual_address, uint32 size)
 {
 	if(isBufferingEnabled())
@@ -585,6 +592,14 @@ uint32 syscall(uint32 syscallno, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uin
 		return (uint32)sys_get_is_page_filled(a1);
 		break;
 	//=====================================================================
+
+	//MS3 CODE
+	case SYS_env_set_nice:
+		sys_env_set_nice(a1);
+		return 0;
+		break;
+	//=====================================================================
+
 	case SYS_cputs:
 		sys_cputs((const char*)a1,a2,(uint8)a3);
 		return 0;

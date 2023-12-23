@@ -206,6 +206,10 @@ int tst_dyn_alloc(int number_of_arguments, char **arguments)
 		test_realloc_block_FF();
 		//test_realloc_block_FF();
 	}
+	else if (strcmp(arguments[1], "reallocffc") == 0)
+	{
+		test_realloc_block_FF_COMPLETE();
+	}
 	return 0;
 }
 
