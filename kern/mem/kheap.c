@@ -321,12 +321,16 @@ void *krealloc(void *virtual_address, uint32 new_size)
 				sz = get_block_size(virtual_address);
 			memcpy(ret, virtual_address, MIN(sz - sizeOfMetaData(), new_size));
 			kfree(virtual_address);
-			return ret; //
 		}
-		return virtual_address; // ? may be same virtual_address
+		return ret; // ? may be same virtual_address
 	}
 	if (is_BA_VA)
-		return realloc_block_FF(virtual_address, new_size); // ? may be same virtual_address
+	{
+		void* ret = realloc_block_FF(virtual_address, new_size);
+		if (get_block_size(ret) == new_size)
+			return ret; // ? may be same virtual_address
+		return NULL;
+	}
 
 
 	uint32 prog_size = is_page_filled[PDX(virtual_address)][PTX(virtual_address)], init_va_size = prog_size + get_free_size((uint32)virtual_address + prog_size);
@@ -367,8 +371,7 @@ void *krealloc(void *virtual_address, uint32 new_size)
 				map_frame(ptr_page_directory, ptr_frame_info, (uint32)dst, ptr_page_table[PTX(src)] & 0xFFF);
 			}
 			kfree(virtual_address);
-			return ret;
 		}
-		return virtual_address; // ? may be same virtual_address
+		return ret; // ? may be same virtual_address
 	}
 }
