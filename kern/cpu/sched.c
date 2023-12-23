@@ -77,7 +77,7 @@ fos_scheduler(void)
 	else if (scheduler_method == SCH_BSD)
 	{
 		next_env = fos_scheduler_BSD();
-		kclock_set_quantum(quantums[0]);
+		//kclock_set_quantum(quantums[0]);
 	}
 	//temporarily set the curenv by the next env JUST for checking the scheduler
 	//Then: reset it again
@@ -209,16 +209,31 @@ struct Env* fos_scheduler_BSD()
 	//Comment the following line
 	//panic("Not implemented yet");
 	//return NULL;
-	if (curenv != NULL)// we shouldn't update priority because it is already updated fos_scheduler()
-		enqueue(&(env_ready_queues[ PRI_MAX - curenv->priority]), curenv);
 
-	for(int i = 0; i < num_of_ready_queues; i++)
-	{
-		if(queue_size(&env_ready_queues[i]))
-			return dequeue(&env_ready_queues[i]);
-		//sched_print_all();
-	}
-	return NULL;
+	//[1] Place the curenv (if any) in its correct queue
+
+	//[2] Search for the next env in the queues according to their priorities
+
+	//[3] If next env is found:
+	//		1. Set the CPU quantum
+	//		2. Remove the selected env from its queue and return it
+	//    Else:
+	//		1. Reset load_avg for next run
+	//		2. return NULL
+
+    if (curenv != NULL)// we shouldn't update priority because it is already updated fos_scheduler()
+        enqueue(&(env_ready_queues[curenv->priority]), curenv);
+
+    for(int i = num_of_ready_queues - 1; i >= 0; i--)
+    {
+        if(queue_size(&env_ready_queues[i])){
+            kclock_set_quantum(quantums[0]);
+            return dequeue(&env_ready_queues[i]);
+        }
+        //sched_print_all();
+    }
+    load_avg = fix_int(0);
+    return NULL;
 }
 
 //========================================
@@ -338,7 +353,7 @@ void clock_interrupt_handler()
 						int queue_idx = PRI_MAX - ptr->priority; ///when pr = 63(max) -> this is queue [0]
 						enqueue(&env_ready_queues[queue_idx], ptr);
 						ptr2 = ptr->prev_next_info.le_prev;
-						remove_from_queue(&env_ready_queues[queue_idx],ptr);
+						remove_from_queue(&env_ready_queues[i],ptr); // may be reverse with enqueue in order
 						ptr = ptr2;
 					}
 				}

@@ -558,16 +558,25 @@ void env_set_nice(struct Env* e, int nice_value)
 	//Comment the following line
     //panic("Not implemented yet");
 
+	//[1] Update nice value of the given enviroment
+
+	//[2] If its status is NOT NEW, just update its priority without changing ready queues
+	//    Else, do nothing
+
 	e->nice_value = nice_value;
-	fixed_point_t nice2 = fix_int(2*nice_value);
-	fixed_point_t recent4 = fix_div(e->recent_cpu, fix_int(4));
-	fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
-	fixed_point_t second_minus = fix_sub(first_minus, nice2);
-	e->priority = fix_trunc(second_minus);
-	if(e->priority > PRI_MAX)
-		e->priority = PRI_MAX;
-	else if(e->priority < PRI_MIN)
-		e->priority = PRI_MIN;
+
+	if(e->env_status != ENV_NEW)
+	{
+		fixed_point_t nice2 = fix_int(2*nice_value);
+		fixed_point_t recent4 = fix_div(e->recent_cpu, fix_int(4));
+		fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
+		fixed_point_t second_minus = fix_sub(first_minus, nice2);
+		e->priority = fix_trunc(second_minus);
+		if(e->priority > PRI_MAX)
+			e->priority = PRI_MAX;
+		else if(e->priority < PRI_MIN)
+			e->priority = PRI_MIN;
+	}
 
 }
 int env_get_recent_cpu(struct Env* e)
