@@ -166,10 +166,15 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 		pt_set_page_permissions(e->env_page_directory, va, 0, PERM_MARKED);
 		pf_remove_env_page(e, va);
 
-		fast_env_page_ws_invalidate(e, va);
+		int perms = pt_get_page_permissions(e->env_page_directory, va);
+		if ((perms & PERM_PRESENT) || (perms & PERM_SECOND_LIST))
+			fast_env_page_ws_invalidate(e, va);
 	}
 
 	// MS3 Code
+	if (!isPageReplacmentAlgorithmFIFO())
+		return;
+
 	while(e->page_last_WS_element && LIST_FIRST(&(e->page_WS_list))->virtual_address != e->page_last_WS_element->virtual_address)
 	{
 		struct WorkingSetElement* first = LIST_FIRST(&(e->page_WS_list));
