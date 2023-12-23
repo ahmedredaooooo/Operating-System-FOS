@@ -136,7 +136,7 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 				//ptr_frame_info->element = WSE;
 
 				//cprintf("\n\n fault_va = %x, wse = %x \n\n", fault_va, WSE);
-		
+
 				LIST_INSERT_TAIL(&(curenv->page_WS_list), WSE);
 
 				uint32 wsSize = LIST_SIZE(&(curenv->page_WS_list));
@@ -170,7 +170,7 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va)
 			fast_env_page_ws_invalidate(curenv, removed_va); // O(1) purpose
 			//env_page_ws_invalidate(curenv, removed_va);
 			//unmap_frame(curenv->env_page_directory, removed_va);
-			
+
 			//placement code
 			fault_va = ROUNDDOWN(fault_va, PAGE_SIZE);
 			struct FrameInfo *ptr_frame_info = NULL;
