@@ -17,6 +17,16 @@ int env_get_nice(struct Env* e) ;
 void env_set_nice(struct Env* e, int nice_value) ;
 int env_get_recent_cpu(struct Env* e) ;
 int get_load_average() ;
+
+
+/********* OUR Helper Functions ******************/
+
+int update_priority(struct Env* e);
+fixed_point_t update_recent_cpu(struct Env* e, fixed_point_t recent_cpu_t_minus_1);
+fixed_point_t update_load_average(fixed_point_t load_avg_t_minus_1);
+
+/*************************************************/
+
 /********* for BSD Priority Scheduler *************/
 
 void sched_insert_ready0(struct Env* env);

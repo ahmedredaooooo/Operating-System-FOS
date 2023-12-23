@@ -869,6 +869,11 @@ void initialize_environment(struct Env* e, uint32* ptr_user_page_directory, unsi
 		e->__ptr_tws[i].time_stamp = 0 ;
 	}
 
+	/////////////////////////////////////MS3 OUR Edit /////////////////////////////////////////////
+	e->recent_cpu = fix_int(0);
+	e->nice_value = 0;
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
 	e->table_last_WS_index = 0;
 
 	e->pageFaultsCounter=0;

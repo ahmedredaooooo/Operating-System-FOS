@@ -566,17 +566,7 @@ void env_set_nice(struct Env* e, int nice_value)
 	e->nice_value = nice_value;
 
 	if(e->env_status != ENV_NEW)
-	{
-		fixed_point_t nice2 = fix_int(2*nice_value);
-		fixed_point_t recent4 = fix_div(e->recent_cpu, fix_int(4));
-		fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
-		fixed_point_t second_minus = fix_sub(first_minus, nice2);
-		e->priority = fix_trunc(second_minus);
-		if(e->priority > PRI_MAX)
-			e->priority = PRI_MAX;
-		else if(e->priority < PRI_MIN)
-			e->priority = PRI_MIN;
-	}
+		update_priority(e);
 
 }
 int env_get_recent_cpu(struct Env* e)
@@ -586,7 +576,7 @@ int env_get_recent_cpu(struct Env* e)
 	//Comment the following line
 	//panic("Not implemented yet");
 	//return 0;
-	return fix_round(fix_scale(e->recent_cpu, 100)) ;
+	return fix_round(fix_scale(e->recent_cpu, 100));
 }
 int get_load_average()
 {
@@ -598,4 +588,55 @@ int get_load_average()
 	return fix_round(fix_scale(load_avg, 100));
 }
 /********* for BSD Priority Scheduler *************/
+
+/********* OUR Helper Functions ******************/
+
+int update_priority(struct Env* e)
+{
+	// priority = PRI_MAX - recent_cpu/4 - 2*nice;
+
+	fixed_point_t nice2 = fix_int(2 * e->nice_value);
+	fixed_point_t recent4 = fix_div(e->recent_cpu, fix_int(4));
+	fixed_point_t first_minus = fix_sub(fix_int(PRI_MAX), recent4);
+	fixed_point_t second_minus = fix_sub(first_minus, nice2);
+	e->priority = fix_trunc(second_minus);
+	if(e->priority > PRI_MAX)
+		e->priority = PRI_MAX;
+	else if(e->priority < PRI_MIN)
+		e->priority = PRI_MIN;
+	return e->priority;
+}
+
+fixed_point_t update_recent_cpu(struct Env* e, fixed_point_t recent_cpu_t_minus_1)
+{
+	//recent_cpu(t) = 2*load_avg/(2*load_avg + 1) * recent_cpu(t-1) + nice
+
+	fixed_point_t load_avg_2 = fix_mul(load_avg, fix_int(2));
+	fixed_point_t load_avg_2_plus_1 = fix_add(load_avg_2, fix_int(1));
+	fixed_point_t load_avg_fraction = fix_div(load_avg_2, load_avg_2_plus_1);
+	fixed_point_t t_recent_cpu = fix_mul(load_avg_fraction, recent_cpu_t_minus_1);
+	fixed_point_t t_nice = fix_int(e->nice_value);
+	e->recent_cpu = fix_add(t_recent_cpu, t_nice);
+	return e->recent_cpu;
+}
+
+fixed_point_t update_load_average(fixed_point_t load_avg_t_minus_1)
+{
+	// load_avg(t) = 59/60 * load_avg(t-1) + 1/60 * ready_process(t);
+	num_of_ready_process = 0;
+	for(int i = 0; i < num_of_ready_queues; i++)
+		num_of_ready_process += queue_size(&env_ready_queues[i]);
+
+	if(curenv)
+		num_of_ready_process++;
+
+	fixed_point_t fraction59 = fix_div(fix_int(59), fix_int(60));
+	fixed_point_t old_load   = fix_mul(fraction59, load_avg_t_minus_1);
+	fixed_point_t fraction1  = fix_div(fix_int(1), fix_int(60));
+	fixed_point_t t_num_of_ready_process = fix_mul(fraction1, fix_int(num_of_ready_process));
+	load_avg = fix_add(old_load, t_num_of_ready_process);
+	return load_avg;
+}
+
+/*************************************************/
 //==================================================================================//
