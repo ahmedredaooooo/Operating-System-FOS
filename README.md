@@ -2,7 +2,7 @@
 
 A simple and fully functioning operating system written in C as a project for FCIS-ASU's OS course.
 
-## Features
+# Features
 
 - 
 
