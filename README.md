@@ -1,4 +1,4 @@
-# Animal Shelter System
+# FCIS Operating System
 
 A fully functioning operating system written in C, achieving three significant milestones:
 
