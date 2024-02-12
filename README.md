@@ -10,8 +10,8 @@ A fully functioning operating system written in C, achieving three significant m
 
 ## Creators 
 
-- Ahmed Galal
-- Ahmed Ayman
-- Ahmed Reda
-- Abdelrahman Warraky
+- [Ahmed Galal](https://github.com/1AhmedGalal)
+- [Ahmed Ayman](https://github.com/AhmedAymanMo)
+- [Ahmed Reda](https://github.com/ahmedredaooooo)
+- [Abdelrahman Warraky](https://github.com/0Abdelrahman1)
 
